@@ -1,0 +1,30 @@
+// 全局 SCSS 变量
+
+// 主题色 - 科技蓝
+$primary-color: #3b82f6;
+$success-color: #10b981;
+$warning-color: #f59e0b;
+$danger-color: #ef4444;
+$info-color: #64748b;
+
+// 侧边栏 - 浅色主题
+$sidebar-bg-color: #ffffff;
+$sidebar-text-color: #334155;
+$sidebar-active-bg-color: rgba(59, 130, 246, 0.1);
+$sidebar-active-text-color: #3b82f6;
+
+// 尺寸
+$navbar-height: 60px;
+$tags-height: 56px;
+$sidebar-width: 220px;
+$sidebar-collapsed-width: 70px;
+
+// 断点
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1200px;
+
+// 过渡
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;

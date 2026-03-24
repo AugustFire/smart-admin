@@ -1,1 +1,0 @@
-import{h as n}from"./index-Xt2Z9IPd.js";function u(){return n.get("/menu/tree")}function r(e){return n.post("/menu",e)}function p(e){return n.put("/menu",e)}function i(e){return n.delete(`/menu/${e}`)}export{r as a,i as d,u as g,p as u};

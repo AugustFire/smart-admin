@@ -3,8 +3,8 @@ node_modules/
 .pnpm-store/
 
 # Build outputs
-auto-admin-web/dist/
-auto-admin-server/target/
+smart-admin-web/dist/
+smart-admin-server/target/
 
 # IDE
 .idea/
@@ -29,4 +29,4 @@ pnpm-debug.log*
 
 # Claude
 .claude/
-/auto-admin-server/logs/
+/smart-admin-server/logs/

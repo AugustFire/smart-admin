@@ -92,10 +92,10 @@
 
 ```bash
 # 创建数据库
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS auto_admin DEFAULT CHARACTER SET utf8mb4;"
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS smart_admin DEFAULT CHARACTER SET utf8mb4;"
 
 # 执行初始化脚本
-mysql -u root -p auto_admin < sql/auto_admin.sql
+mysql -u root -p smart_admin < sql/smart_admin.sql
 ```
 
 > 默认管理员账号：`admin` / `admin123`
@@ -103,7 +103,7 @@ mysql -u root -p auto_admin < sql/auto_admin.sql
 ### 2. 启动后端
 
 ```bash
-cd auto-admin-server
+cd smart-admin-server
 mvn spring-boot:run
 ```
 
@@ -113,7 +113,7 @@ mvn spring-boot:run
 ### 3. 启动前端
 
 ```bash
-cd auto-admin-web
+cd smart-admin-web
 pnpm install   # 首次运行安装依赖
 pnpm dev
 ```
@@ -125,9 +125,9 @@ pnpm dev
 ## 📁 项目结构
 
 ```
-auto-admin/
-├── auto-admin-server/          # Spring Boot 后端
-│   └── src/main/java/com/autoadmin/
+smart-admin/
+├── smart-admin-server/         # Spring Boot 后端
+│   └── src/main/java/com/smartadmin/
 │       ├── common/             # 通用模块
 │       ├── config/             # 配置类
 │       ├── interceptor/        # 拦截器
@@ -137,7 +137,7 @@ auto-admin/
 │           ├── system/         # 系统管理
 │           └── profile/        # 个人中心
 │
-├── auto-admin-web/             # Vue 3 前端
+├── smart-admin-web/            # Vue 3 前端
 │   └── src/
 │       ├── api/                # API 封装
 │       ├── views/              # 页面组件
@@ -147,7 +147,7 @@ auto-admin/
 │       └── layout/             # 布局组件
 │
 └── sql/                        # 数据库脚本
-    └── auto_admin.sql          # 完整 SQL
+    └── smart_admin.sql         # 完整 SQL
 ```
 
 ### 核心数据表

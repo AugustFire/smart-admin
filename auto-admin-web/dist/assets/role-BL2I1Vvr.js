@@ -1,0 +1,1 @@
+import{h as t}from"./index-Xt2Z9IPd.js";function r(){return t.get("/role/list")}function u(e){return t.post("/role",e)}function s(e){return t.put("/role",e)}function i(e){return t.delete(`/role/${e}`)}function l(e,n){return t.put("/role/assignMenus",{roleId:e,menuIds:n})}function p(e){return t.get(`/role/menuIds/${e}`)}export{u as a,p as b,l as c,i as d,r as g,s as u};

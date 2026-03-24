@@ -7,9 +7,9 @@ import com.autoadmin.modules.profile.biz.ProfileBiz;
 import com.autoadmin.modules.profile.dto.request.PasswordReq;
 import com.autoadmin.modules.profile.dto.request.ProfileUpdateReq;
 import com.autoadmin.modules.profile.dto.response.ProfileResp;
+import com.autoadmin.utils.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +30,8 @@ public class ProfileController {
      */
     @GetMapping
     @Operation(summary = "获取当前用户信息")
-    public Result<ProfileResp> getInfo(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<ProfileResp> getInfo() {
+        Long userId = UserContext.getUserId();
         return Result.success(profileBiz.getProfile(userId));
     }
 
@@ -41,8 +41,8 @@ public class ProfileController {
     @PutMapping
     @OperLog(title = "个人中心", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改个人信息")
-    public Result<Void> updateProfile(HttpServletRequest request, @Valid @RequestBody ProfileUpdateReq req) {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<Void> updateProfile(@Valid @RequestBody ProfileUpdateReq req) {
+        Long userId = UserContext.getUserId();
         profileBiz.updateProfile(userId, req);
         return Result.success();
     }
@@ -53,8 +53,8 @@ public class ProfileController {
     @PutMapping("/password")
     @OperLog(title = "个人中心", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改密码")
-    public Result<Void> updatePassword(HttpServletRequest request, @Valid @RequestBody PasswordReq req) {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<Void> updatePassword(@Valid @RequestBody PasswordReq req) {
+        Long userId = UserContext.getUserId();
         profileBiz.updatePassword(userId, req);
         return Result.success();
     }

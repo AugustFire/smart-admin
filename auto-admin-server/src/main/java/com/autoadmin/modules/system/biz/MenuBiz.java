@@ -7,6 +7,7 @@ import com.autoadmin.modules.system.dto.response.MenuResp;
 import com.autoadmin.modules.system.dto.response.MenuTreeResp;
 import com.autoadmin.modules.system.entity.SysMenu;
 import com.autoadmin.modules.system.mapper.MenuConverter;
+import com.autoadmin.modules.system.service.SysMenuApiService;
 import com.autoadmin.modules.system.service.SysMenuService;
 import com.autoadmin.modules.system.service.SysRoleMenuService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class MenuBiz {
 
     private final SysMenuService menuService;
     private final SysRoleMenuService roleMenuService;
+    private final SysMenuApiService menuApiService;
 
     /**
      * 获取菜单树形列表
@@ -96,6 +98,14 @@ public class MenuBiz {
     }
 
     /**
+     * 获取菜单关联的接口数量
+     * 用于前端删除确认提示
+     */
+    public int getRelatedApiCount(Long id) {
+        return menuApiService.countByMenuId(id);
+    }
+
+    /**
      * 删除菜单
      */
     @Transactional(rollbackFor = Exception.class)
@@ -109,6 +119,9 @@ public class MenuBiz {
         if (count > 0) {
             throw new BusinessException("存在子菜单，无法删除");
         }
+
+        // 删除菜单接口关联
+        menuApiService.deleteByMenuId(id);
 
         menuService.removeById(id);
 

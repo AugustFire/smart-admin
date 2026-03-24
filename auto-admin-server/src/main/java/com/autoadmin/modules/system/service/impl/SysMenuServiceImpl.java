@@ -61,4 +61,21 @@ public class SysMenuServiceImpl extends BaseServiceImpl<SysMenuMapper, SysMenu> 
 
         return buildMenuTree(menus, 0L);
     }
+
+    @Override
+    public List<SysMenu> getMenusByUserId(Long userId) {
+        // 获取用户的角色 ID 集合
+        Set<Long> roleIds = roleService.getRoleIdsByUserId(userId);
+        if (roleIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if (roleService.isSuperAdmin(userId)) {
+            // 超级管理员返回所有菜单（包括按钮）
+            return list();
+        } else {
+            // 普通用户返回角色对应的所有菜单（包括按钮）
+            return getMenusByRoleIds(roleIds);
+        }
+    }
 }

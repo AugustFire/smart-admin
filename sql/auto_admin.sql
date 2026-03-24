@@ -26,7 +26,7 @@ CREATE TABLE `sys_api`  (
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '接口路径',
   `method` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'GET' COMMENT '请求方法',
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '接口名称',
-  `menu_id` bigint NULL DEFAULT NULL COMMENT '关联的菜单 ID',
+  `is_public` tinyint NULL DEFAULT 0 COMMENT '是否公开接口：0=否，1=是（无需权限即可访问）',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态：1=启用，0=禁用',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   `creator` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建人',
@@ -35,49 +35,52 @@ CREATE TABLE `sys_api`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted` tinyint NULL DEFAULT 0 COMMENT '删除标志：0=未删除，1=已删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_path`(`path`(100) ASC) USING BTREE,
-  INDEX `idx_menu_id`(`menu_id` ASC) USING BTREE
+  INDEX `idx_path`(`path`(100) ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 82 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '接口资源表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_api
 -- ----------------------------
-INSERT INTO `sys_api` VALUES (1, '/auth/login', 'POST', '登录', NULL, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (2, '/auth/logout', 'POST', '登出', NULL, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (3, '/auth/userInfo', 'GET', '获取用户信息', NULL, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (4, '/auth/userMenus', 'GET', '获取用户菜单', NULL, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (10, '/user/page', 'GET', '用户分页查询', 30, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (11, '/user', 'POST', '新增用户', 3, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (12, '/user/*', 'PUT', '编辑用户', 4, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (13, '/user/*', 'DELETE', '删除用户', 5, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (14, '/user/resetPwd', 'PUT', '重置密码', 6, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (20, '/role/list', 'GET', '角色列表', 31, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (21, '/role', 'POST', '新增角色', 8, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (22, '/role', 'PUT', '编辑角色', 9, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (23, '/role/*', 'DELETE', '删除角色', 10, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (24, '/role/assignMenus', 'PUT', '分配菜单权限', 11, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (25, '/role/menuIds/*', 'GET', '获取角色菜单', 11, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (30, '/menu/tree', 'GET', '菜单树', 32, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (31, '/menu', 'POST', '新增菜单', 13, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (32, '/menu', 'PUT', '编辑菜单', 14, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (33, '/menu/*', 'DELETE', '删除菜单', 15, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (40, '/api/list', 'GET', '接口列表', 44, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (41, '/api', 'POST', '新增接口', 41, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (42, '/api', 'PUT', '编辑接口', 42, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (43, '/api/*', 'DELETE', '删除接口', 43, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (50, '/dict/type/list', 'GET', '字典类型列表', 33, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (51, '/dict/data/list', 'GET', '字典数据列表', 34, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (52, '/dict/type', 'POST', '新增字典类型', 17, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (53, '/dict/type', 'PUT', '编辑字典类型', 18, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (54, '/dict/type/*', 'DELETE', '删除字典类型', 19, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (60, '/loginlog/page', 'GET', '登录日志分页', 24, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (61, '/loginlog/*', 'DELETE', '删除登录日志', 25, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (62, '/loginlog/clear', 'DELETE', '清空登录日志', 26, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (70, '/operlog/page', 'GET', '操作日志分页', 27, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (71, '/operlog/*', 'DELETE', '删除操作日志', 28, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (72, '/operlog/clear', 'DELETE', '清空操作日志', 29, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (80, '/profile', 'GET', '获取个人信息', 35, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
-INSERT INTO `sys_api` VALUES (81, '/profile/password', 'PUT', '修改密码', 23, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+-- 公开接口（is_public=1）：无需权限即可访问
+INSERT INTO `sys_api` VALUES (1, '/auth/login', 'POST', '登录', 1, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (2, '/auth/logout', 'POST', '登出', 1, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (3, '/auth/userInfo', 'GET', '获取用户信息', 1, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (4, '/auth/userMenus', 'GET', '获取用户菜单', 1, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+-- 业务接口（is_public=0）：需要权限验证
+INSERT INTO `sys_api` VALUES (10, '/user/page', 'GET', '用户分页查询', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (11, '/user', 'POST', '新增用户', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (12, '/user/*', 'PUT', '编辑用户', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (13, '/user/*', 'DELETE', '删除用户', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (14, '/user/resetPwd', 'PUT', '重置密码', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (15, '/user/assignRoles', 'PUT', '分配用户角色', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (16, '/user/roleIds/*', 'GET', '获取用户角色', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (20, '/role/list', 'GET', '角色列表', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (21, '/role', 'POST', '新增角色', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (22, '/role', 'PUT', '编辑角色', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (23, '/role/*', 'DELETE', '删除角色', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (24, '/role/assignMenus', 'PUT', '分配菜单权限', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (25, '/role/menuIds/*', 'GET', '获取角色菜单', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (30, '/menu/tree', 'GET', '菜单树', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (31, '/menu', 'POST', '新增菜单', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (32, '/menu', 'PUT', '编辑菜单', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (33, '/menu/*', 'DELETE', '删除菜单', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (40, '/api/list', 'GET', '接口列表', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (41, '/api', 'POST', '新增接口', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (42, '/api', 'PUT', '编辑接口', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (43, '/api/*', 'DELETE', '删除接口', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (50, '/dict/type/list', 'GET', '字典类型列表', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (51, '/dict/data/list', 'GET', '字典数据列表', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (52, '/dict/type', 'POST', '新增字典类型', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (53, '/dict/type', 'PUT', '编辑字典类型', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (54, '/dict/type/*', 'DELETE', '删除字典类型', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (60, '/loginlog/page', 'GET', '登录日志分页', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (61, '/loginlog/*', 'DELETE', '删除登录日志', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (62, '/loginlog/clear', 'DELETE', '清空登录日志', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (70, '/operlog/page', 'GET', '操作日志分页', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (71, '/operlog/*', 'DELETE', '删除操作日志', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (72, '/operlog/clear', 'DELETE', '清空操作日志', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (80, '/profile', 'GET', '获取个人信息', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
+INSERT INTO `sys_api` VALUES (81, '/profile/password', 'PUT', '修改密码', 0, 1, NULL, '', '2026-03-20 14:17:34', '', '2026-03-20 14:17:34', 0);
 
 -- ----------------------------
 -- Table structure for sys_dict_data
@@ -181,7 +184,7 @@ CREATE TABLE `sys_menu`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
   INDEX `idx_type`(`type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 45 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 44 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -192,6 +195,7 @@ INSERT INTO `sys_menu` VALUES (3, 2, '新增用户', 3, '', '', 'user:add', '', 
 INSERT INTO `sys_menu` VALUES (4, 2, '编辑用户', 3, '', '', 'user:edit', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (5, 2, '删除用户', 3, '', '', 'user:delete', '', 3, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (6, 2, '重置密码', 3, '', '', 'user:resetPwd', '', 4, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
+INSERT INTO `sys_menu` VALUES (44, 2, '分配角色', 3, '', '', 'user:assignRole', '', 5, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (7, 1, '角色管理', 2, '/system/role', 'system/role/index', '', 'UserFilled', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:19:37');
 INSERT INTO `sys_menu` VALUES (8, 7, '新增角色', 3, '', '', 'role:add', '', 1, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (9, 7, '编辑角色', 3, '', '', 'role:edit', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
@@ -209,23 +213,74 @@ INSERT INTO `sys_menu` VALUES (20, 1, '登录日志', 2, '/system/loginlog', 'sy
 INSERT INTO `sys_menu` VALUES (21, 1, '操作日志', 2, '/system/operlog', 'system/operlog/index', '', 'List', 7, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (22, 0, '个人中心', 2, '/profile', 'profile/index', '', 'User', 0, 0, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (23, 22, '修改密码', 3, '', '', 'profile:resetPwd', '', 1, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (24, 20, '查看日志', 3, '', '', 'loginlog:query', '', 1, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (25, 20, '删除日志', 3, '', '', 'loginlog:delete', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (26, 20, '清空日志', 3, '', '', 'loginlog:clear', '', 3, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (27, 21, '查看日志', 3, '', '', 'operlog:query', '', 1, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (28, 21, '删除日志', 3, '', '', 'operlog:delete', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (29, 21, '清空日志', 3, '', '', 'operlog:clear', '', 3, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (30, 2, '查看用户', 3, '', '', 'user:query', '', 5, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (31, 7, '查看角色', 3, '', '', 'role:query', '', 5, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (32, 12, '查看菜单', 3, '', '', 'menu:query', '', 4, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (33, 16, '查看字典', 3, '', '', 'dict:query', '', 4, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (34, 16, '查询字典数据', 3, '', '', 'dict:data:list', '', 5, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (35, 22, '获取个人信息', 3, '', '', 'profile:get', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (40, 1, 'API 管理', 2, '/system/api', 'system/api/index', '', 'Connection', 4, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (41, 40, '新增接口', 3, '', '', 'api:add', '', 1, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (42, 40, '编辑接口', 3, '', '', 'api:edit', '', 2, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
 INSERT INTO `sys_menu` VALUES (43, 40, '删除接口', 3, '', '', 'api:delete', '', 3, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
-INSERT INTO `sys_menu` VALUES (44, 40, '查看接口', 3, '', '', 'api:query', '', 4, 1, 1, '2026-03-20 14:16:19', '2026-03-20 14:16:19');
+
+-- ----------------------------
+-- Table structure for sys_menu_api
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_menu_api`;
+CREATE TABLE `sys_menu_api`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `menu_id` bigint NOT NULL COMMENT '菜单ID',
+  `api_id` bigint NOT NULL COMMENT '接口ID',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_menu_api`(`menu_id` ASC, `api_id` ASC) USING BTREE,
+  INDEX `idx_api_id`(`api_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单接口关联表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of sys_menu_api
+-- ----------------------------
+-- 用户管理菜单(id=2)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (1, 2, 10, NOW());   -- 用户管理菜单 -> 用户列表查询
+INSERT INTO `sys_menu_api` VALUES (2, 3, 11, NOW());   -- 新增用户按钮 -> 新增用户接口
+INSERT INTO `sys_menu_api` VALUES (3, 4, 12, NOW());   -- 编辑用户按钮 -> 编辑用户接口
+INSERT INTO `sys_menu_api` VALUES (4, 5, 13, NOW());   -- 删除用户按钮 -> 删除用户接口
+INSERT INTO `sys_menu_api` VALUES (5, 6, 14, NOW());   -- 重置密码按钮 -> 重置密码接口
+INSERT INTO `sys_menu_api` VALUES (33, 44, 15, NOW()); -- 分配角色按钮 -> 分配用户角色接口
+INSERT INTO `sys_menu_api` VALUES (34, 44, 16, NOW()); -- 分配角色按钮 -> 获取用户角色接口
+-- 角色管理菜单(id=7)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (6, 7, 20, NOW());   -- 角色管理菜单 -> 角色列表接口
+INSERT INTO `sys_menu_api` VALUES (7, 8, 21, NOW());   -- 新增角色按钮 -> 新增角色接口
+INSERT INTO `sys_menu_api` VALUES (8, 9, 22, NOW());   -- 编辑角色按钮 -> 编辑角色接口
+INSERT INTO `sys_menu_api` VALUES (9, 10, 23, NOW());  -- 删除角色按钮 -> 删除角色接口
+INSERT INTO `sys_menu_api` VALUES (10, 11, 24, NOW()); -- 分配权限按钮 -> 分配菜单权限接口
+INSERT INTO `sys_menu_api` VALUES (11, 11, 25, NOW()); -- 分配权限按钮 -> 获取角色菜单接口
+-- 菜单管理菜单(id=12)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (12, 12, 30, NOW()); -- 菜单管理菜单 -> 菜单树接口
+INSERT INTO `sys_menu_api` VALUES (13, 13, 31, NOW()); -- 新增菜单按钮 -> 新增菜单接口
+INSERT INTO `sys_menu_api` VALUES (14, 14, 32, NOW()); -- 编辑菜单按钮 -> 编辑菜单接口
+INSERT INTO `sys_menu_api` VALUES (15, 15, 33, NOW()); -- 删除菜单按钮 -> 删除菜单接口
+-- API管理菜单(id=40)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (16, 40, 40, NOW()); -- API管理菜单 -> 接口列表接口
+INSERT INTO `sys_menu_api` VALUES (17, 41, 41, NOW()); -- 新增接口按钮 -> 新增接口接口
+INSERT INTO `sys_menu_api` VALUES (18, 42, 42, NOW()); -- 编辑接口按钮 -> 编辑接口接口
+INSERT INTO `sys_menu_api` VALUES (19, 43, 43, NOW()); -- 删除接口按钮 -> 删除接口接口
+-- 字典管理菜单(id=16)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (20, 16, 50, NOW()); -- 字典管理菜单 -> 字典类型列表
+INSERT INTO `sys_menu_api` VALUES (21, 16, 51, NOW()); -- 字典管理菜单 -> 字典数据列表
+INSERT INTO `sys_menu_api` VALUES (22, 17, 52, NOW()); -- 新增字典按钮 -> 新增字典类型接口
+INSERT INTO `sys_menu_api` VALUES (23, 18, 53, NOW()); -- 编辑字典按钮 -> 编辑字典类型接口
+INSERT INTO `sys_menu_api` VALUES (24, 19, 54, NOW()); -- 删除字典按钮 -> 删除字典类型接口
+-- 登录日志菜单(id=20)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (25, 20, 60, NOW()); -- 登录日志菜单 -> 登录日志分页接口
+INSERT INTO `sys_menu_api` VALUES (26, 25, 61, NOW()); -- 删除日志按钮 -> 删除登录日志接口
+INSERT INTO `sys_menu_api` VALUES (27, 26, 62, NOW()); -- 清空日志按钮 -> 清空登录日志接口
+-- 操作日志菜单(id=21)绑定查询接口，按钮绑定操作接口
+INSERT INTO `sys_menu_api` VALUES (28, 21, 70, NOW()); -- 操作日志菜单 -> 操作日志分页接口
+INSERT INTO `sys_menu_api` VALUES (29, 28, 71, NOW()); -- 删除日志按钮 -> 删除操作日志接口
+INSERT INTO `sys_menu_api` VALUES (30, 29, 72, NOW()); -- 清空日志按钮 -> 清空操作日志接口
+-- 个人中心菜单(id=22)绑定接口
+INSERT INTO `sys_menu_api` VALUES (31, 22, 80, NOW()); -- 个人中心菜单 -> 获取个人信息接口
+INSERT INTO `sys_menu_api` VALUES (32, 23, 81, NOW()); -- 修改密码按钮 -> 修改密码接口
 
 -- ----------------------------
 -- Table structure for sys_oper_log
@@ -445,30 +500,6 @@ CREATE TABLE `sys_role`  (
 -- ----------------------------
 INSERT INTO `sys_role` VALUES (1, '超级管理员', 'super_admin', 1, 1, '2026-03-18 12:03:48', '2026-03-18 12:03:48', 0);
 INSERT INTO `sys_role` VALUES (2, '普通用户', 'common_user', 2, 1, '2026-03-18 12:03:48', '2026-03-18 12:03:48', 0);
-
--- ----------------------------
--- Table structure for sys_role_api
--- ----------------------------
-DROP TABLE IF EXISTS `sys_role_api`;
-CREATE TABLE `sys_role_api`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-  `role_id` bigint NOT NULL COMMENT '角色 ID',
-  `api_id` bigint NOT NULL COMMENT '接口 ID',
-  `creator` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建人',
-  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `deleted` tinyint NULL DEFAULT 0 COMMENT '删除标志：0=未删除，1=已删除',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_role_api`(`role_id` ASC, `api_id` ASC) USING BTREE,
-  INDEX `idx_api_id`(`api_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色接口关联表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sys_role_api
--- ----------------------------
-INSERT INTO `sys_role_api` VALUES (1, 1, 1, '', '2026-03-18 15:48:33', 0);
-INSERT INTO `sys_role_api` VALUES (2, 1, 2, '', '2026-03-18 15:48:33', 0);
-INSERT INTO `sys_role_api` VALUES (3, 1, 3, '', '2026-03-18 15:48:33', 0);
-INSERT INTO `sys_role_api` VALUES (4, 1, 4, '', '2026-03-18 15:48:33', 0);
 
 -- ----------------------------
 -- Table structure for sys_role_menu

@@ -8,9 +8,9 @@ import com.autoadmin.common.Result;
 import com.autoadmin.common.annotation.OperLog;
 import com.autoadmin.common.enums.BusinessType;
 import com.autoadmin.modules.system.entity.SysMenu;
+import com.autoadmin.utils.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +51,8 @@ public class AuthController {
     @PostMapping("/logout")
     @OperLog(title = "用户登出", businessType = BusinessType.LOGOUT)
     @Operation(summary = "用户登出")
-    public Result<Void> logout(HttpServletRequest request) {
-        String username = (String) request.getAttribute("username");
+    public Result<Void> logout() {
+        String username = UserContext.getUsername();
         log.info("用户 {} 登出成功", username);
         return Result.success();
     }
@@ -62,8 +62,8 @@ public class AuthController {
      */
     @GetMapping("/userInfo")
     @Operation(summary = "获取当前用户信息")
-    public Result<UserInfoResponse> getUserInfo(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<UserInfoResponse> getUserInfo() {
+        Long userId = UserContext.getUserId();
         UserInfoResponse userInfo = authBiz.getUserInfo(userId);
         if (userInfo == null) {
             return Result.error("用户不存在");
@@ -76,8 +76,8 @@ public class AuthController {
      */
     @GetMapping("/userMenus")
     @Operation(summary = "获取当前用户菜单权限")
-    public Result<List<SysMenu>> getUserMenus(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<List<SysMenu>> getUserMenus() {
+        Long userId = UserContext.getUserId();
         List<SysMenu> menus = authBiz.getUserMenus(userId);
         return Result.success(menus);
     }

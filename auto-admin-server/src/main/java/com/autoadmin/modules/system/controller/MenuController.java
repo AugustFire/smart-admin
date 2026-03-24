@@ -68,6 +68,15 @@ public class MenuController {
     }
 
     /**
+     * 获取菜单关联的接口数量
+     */
+    @GetMapping("/relatedApiCount/{id}")
+    @Operation(summary = "获取菜单关联的接口数量")
+    public Result<Integer> getRelatedApiCount(@PathVariable Long id) {
+        return Result.success(menuBiz.getRelatedApiCount(id));
+    }
+
+    /**
      * 删除菜单
      */
     @DeleteMapping("/{id}")

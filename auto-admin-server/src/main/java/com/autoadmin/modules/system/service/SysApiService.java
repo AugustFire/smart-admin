@@ -32,7 +32,15 @@ public interface SysApiService extends BaseService<SysApi> {
     }
 
     /**
-     * 根据菜单 ID 列表获取接口列表
+     * 根据接口 ID 列表获取接口列表
      */
-    Set<SysApi> getApisByMenuIds(Set<Long> menuIds);
+    Set<SysApi> getApisByIds(Set<Long> apiIds);
+
+    /**
+     * 检查指定路径和方法的接口是否为公开接口
+     * @param path 接口路径
+     * @param method 请求方法
+     * @return true=公开接口，false=非公开接口
+     */
+    boolean isPublicApi(String path, String method);
 }

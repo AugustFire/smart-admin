@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!item.hidden">
+  <div v-if="!isHidden">
     <template v-if="hasOneShowingChild(item.children, item) && (!onlyOneChild?.children || onlyOneChild.noShowingChildren)">
       <el-menu-item :index="resolvePath((onlyOneChild as RouteItem).path)">
         <el-icon>
@@ -52,17 +52,27 @@ const props = defineProps<{
 
 const onlyOneChild = ref<RouteItem | null>(null)
 
+// 判断是否隐藏（支持 item.hidden 或 item.meta.hidden）
+const isHidden = computed(() => {
+  return props.item.hidden || props.item.meta?.hidden
+})
+
 // 只显示目录和菜单类型
 const visibleChildren = computed(() => {
   return (props.item.children || []).filter(
-    child => !child.hidden && (child.meta?.type === 1 || child.meta?.type === 2)
+    child => !isChildHidden(child) && (child.meta?.type === 1 || child.meta?.type === 2)
   )
 })
+
+// 判断子路由是否隐藏
+function isChildHidden(child: RouteItem) {
+  return child.hidden || child.meta?.hidden
+}
 
 function hasOneShowingChild(children: RouteItem[] = [], parent: RouteItem) {
   const showingChildren = children.filter((item) => {
     // 只显示目录和菜单类型
-    return !item.hidden && (item.meta?.type === 1 || item.meta?.type === 2)
+    return !isChildHidden(item) && (item.meta?.type === 1 || item.meta?.type === 2)
   })
 
   if (showingChildren.length === 1) {

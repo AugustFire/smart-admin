@@ -6,7 +6,7 @@
         <el-card>
           <template #header>
             <span>字典类型</span>
-            <el-button type="primary" size="small" @click="handleAddType" style="float: right">
+            <el-button v-permission="['dict:add']" type="primary" size="small" @click="handleAddType" style="float: right">
               <el-icon><Plus /></el-icon>
               新增
             </el-button>
@@ -24,8 +24,8 @@
             <el-table-column label="操作" width="150">
               <template #default="{ row }">
                 <div class="action-buttons">
-                  <el-button link type="primary" class="action-btn edit-btn" @click.stop="handleUpdateType(row)">编辑</el-button>
-                  <el-button link type="danger" class="action-btn delete-btn" @click.stop="handleDeleteType(row)">删除</el-button>
+                  <el-button v-permission="['dict:edit']" link type="primary" class="action-btn edit-btn" @click.stop="handleUpdateType(row)">编辑</el-button>
+                  <el-button v-permission="['dict:delete']" link type="danger" class="action-btn delete-btn" @click.stop="handleDeleteType(row)">删除</el-button>
                 </div>
               </template>
             </el-table-column>
@@ -39,6 +39,7 @@
           <template #header>
             <span>字典数据 - {{ currentTypeName }}</span>
             <el-button
+              v-permission="['dict:add']"
               type="primary"
               size="small"
               @click="handleAddData"
@@ -63,8 +64,8 @@
             <el-table-column label="操作" width="160">
               <template #default="{ row }">
                 <div class="action-buttons">
-                  <el-button link type="primary" class="action-btn edit-btn" @click="handleUpdateData(row)">编辑</el-button>
-                  <el-button link type="danger" class="action-btn delete-btn" @click="handleDeleteData(row)">删除</el-button>
+                  <el-button v-permission="['dict:edit']" link type="primary" class="action-btn edit-btn" @click="handleUpdateData(row)">编辑</el-button>
+                  <el-button v-permission="['dict:delete']" link type="danger" class="action-btn delete-btn" @click="handleDeleteData(row)">删除</el-button>
                 </div>
               </template>
             </el-table-column>

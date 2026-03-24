@@ -98,14 +98,37 @@ public class AuthBiz {
                     .collect(Collectors.toList());
         }
 
+        // 获取用户权限标识列表
+        List<String> permissions = null;
+        Set<SysRole> roleSet = roles;
+        if (roleSet != null && !roleSet.isEmpty()) {
+            // 检查是否为超级管理员
+            boolean isSuperAdmin = roleSet.stream()
+                    .anyMatch(role -> "super_admin".equals(role.getCode()));
+
+            if (isSuperAdmin) {
+                // 超级管理员拥有所有权限
+                permissions = menuService.list().stream()
+                        .map(SysMenu::getPermission)
+                        .filter(p -> p != null && !p.isEmpty())
+                        .collect(Collectors.toList());
+            } else {
+                // 获取用户的所有菜单（包括按钮）
+                List<SysMenu> menus = menuService.getMenusByUserId(userId);
+                permissions = menus.stream()
+                        .map(SysMenu::getPermission)
+                        .filter(p -> p != null && !p.isEmpty())
+                        .collect(Collectors.toList());
+            }
+        }
+
         UserInfoResponse response = new UserInfoResponse();
         response.setUserId(user.getId());
         response.setUsername(user.getUsername());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatar());
         response.setRoles(roleInfoList);
-
-        // TODO: 获取权限标识列表
+        response.setPermissions(permissions);
 
         return response;
     }

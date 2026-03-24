@@ -22,17 +22,6 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  // 404 页面
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/404',
-  },
-  {
-    path: '/404',
-    name: '404',
-    component: () => import('@/views/Error/404.vue'),
-    meta: { title: '404' },
-  },
   // 个人中心 - 静态路由，不显示在菜单中但可访问
   {
     path: '/profile',
@@ -41,6 +30,19 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '个人中心' },
   },
 ]
+
+// 404 路由配置（在动态路由加载后添加）
+export const notFoundRoute: RouteRecordRaw = {
+  path: '/:pathMatch(.*)*',
+  redirect: '/404',
+}
+
+export const notFoundPageRoute: RouteRecordRaw = {
+  path: '/404',
+  name: '404',
+  component: () => import('@/views/Error/404.vue'),
+  meta: { title: '404' },
+}
 
 const router = createRouter({
   history: createWebHistory(),

@@ -28,8 +28,8 @@ public class SysApi implements Serializable {
     /** 接口名称 */
     private String name;
 
-    /** 关联的菜单 ID */
-    private Long menuId;
+    /** 是否公开接口：0=否，1=是（无需权限即可访问） */
+    private Integer isPublic;
 
     /** 状态：1=启用，0=禁用 */
     private Integer status;

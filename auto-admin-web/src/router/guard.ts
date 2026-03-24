@@ -2,6 +2,7 @@ import type { Router } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
 import { usePermissionStore } from '@/store/modules/permission'
 import { getUserMenusApi } from '@/api/auth'
+import { notFoundRoute, notFoundPageRoute } from './index'
 
 export function createRouterGuard(router: Router) {
   router.beforeEach(async (to, _from, next) => {
@@ -67,4 +68,8 @@ async function loadUserMenus(router: Router) {
   dynamicRoutes.forEach(route => {
     router.addRoute('layout', route)
   })
+
+  // 在动态路由加载完成后添加 404 路由（必须最后添加）
+  router.addRoute(notFoundPageRoute)
+  router.addRoute(notFoundRoute)
 }

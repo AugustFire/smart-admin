@@ -3,8 +3,10 @@ package com.autoadmin.interceptor;
 import com.autoadmin.common.exception.AuthorizationException;
 import com.autoadmin.modules.system.entity.SysApi;
 import com.autoadmin.modules.system.service.SysApiService;
+import com.autoadmin.modules.system.service.SysMenuApiService;
 import com.autoadmin.modules.system.service.SysRoleMenuService;
 import com.autoadmin.modules.system.service.SysRoleService;
+import com.autoadmin.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,9 @@ import java.util.Set;
 /**
  * 权限拦截器
  * 检查用户是否有权限访问请求的接口
- * 权限验证流程：用户 → 角色 → 菜单 → 接口
+ * 权限验证流程：
+ * 1. 检查是否为公开接口（is_public=1）→ 直接放行
+ * 2. 检查用户 → 角色 → 菜单 → 菜单接口关联 → 接口
  * 超级管理员（角色编码为 super_admin）默认拥有所有接口权限
  */
 @Slf4j
@@ -29,6 +33,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private final SysApiService apiService;
     private final SysRoleService roleService;
     private final SysRoleMenuService roleMenuService;
+    private final SysMenuApiService menuApiService;
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
@@ -37,38 +42,49 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String requestUri = request.getRequestURI();
         String method = request.getMethod();
 
-        // 获取当前用户 ID（由 JwtInterceptor 设置）
-        Long userId = (Long) request.getAttribute("userId");
-        if (userId == null) {
-            // 未登录，由 JwtInterceptor 处理
+        // 1. 优先检查是否为公开接口
+        if (apiService.isPublicApi(requestUri, method)) {
+            log.debug("公开接口访问 [{}] [{}]", method, requestUri);
             return true;
         }
 
-        // 检查是否为超级管理员
+        // 2. 获取当前用户 ID（由 UserContext 提供）
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            throw new AuthorizationException("未登录或登录已过期");
+        }
+
+        // 3. 检查是否为超级管理员
         if (roleService.isSuperAdmin(userId)) {
             log.debug("超级管理员用户 [{}] 访问接口 [{}] [{}]", userId, method, requestUri);
             return true;
         }
 
-        // 获取用户的所有角色 ID
+        // 4. 获取用户的所有角色 ID
         Set<Long> roleIds = roleService.getRoleIdsByUserId(userId);
         if (roleIds.isEmpty()) {
             throw new AuthorizationException("用户未分配角色，无权访问");
         }
 
-        // 获取用户的所有菜单 ID（通过角色获取）
+        // 5. 获取用户的所有菜单 ID（通过角色获取）
         Set<Long> menuIds = roleMenuService.getMenuIdsByRoleIds(roleIds);
         if (menuIds.isEmpty()) {
             throw new AuthorizationException("用户未分配菜单权限，无权访问");
         }
 
-        // 根据菜单 ID 获取用户的所有接口权限
-        Set<SysApi> apis = apiService.getApisByMenuIds(menuIds);
+        // 6. 根据菜单 ID 获取接口 ID 列表（通过中间表）
+        Set<Long> apiIds = menuApiService.getApiIdsByMenuIds(menuIds);
+        if (apiIds.isEmpty()) {
+            throw new AuthorizationException("用户未分配接口权限，无权访问");
+        }
+
+        // 7. 根据接口 ID 获取接口详情
+        Set<SysApi> apis = apiService.getApisByIds(apiIds);
         if (apis.isEmpty()) {
             throw new AuthorizationException("用户未分配接口权限，无权访问");
         }
 
-        // 检查是否有访问权限
+        // 8. 检查是否有访问权限
         boolean hasPermission = apis.stream()
                 .anyMatch(api -> {
                     String apiUrl = api.getPath();

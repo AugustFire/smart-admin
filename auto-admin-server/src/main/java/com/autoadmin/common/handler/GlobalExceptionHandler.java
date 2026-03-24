@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
      * 认证异常
      */
     @ExceptionHandler(AuthenticationException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.OK)
     public Result<?> handleAuthenticationException(AuthenticationException e) {
         log.warn("认证异常：{}", e.getMessage());
         return Result.unauthorized(e.getMessage());
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
      * 权限异常
      */
     @ExceptionHandler(AuthorizationException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.OK)
     public Result<?> handleAuthorizationException(AuthorizationException e) {
         log.warn("权限异常：{}", e.getMessage());
         return Result.forbidden(e.getMessage());

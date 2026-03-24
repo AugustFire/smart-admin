@@ -4,7 +4,7 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" style="margin-bottom: 16px">
         <el-col :span="1.5">
-          <el-button type="primary" @click="handleAdd">
+          <el-button v-permission="['role:add']" type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon>
             新增
           </el-button>
@@ -28,9 +28,9 @@
         <el-table-column label="操作" fixed="right" width="260">
           <template #default="{ row }">
             <div class="action-buttons">
-              <el-button link type="primary" class="action-btn edit-btn" @click="handleUpdate(row)">编辑</el-button>
-              <el-button link type="warning" class="action-btn permission-btn" @click="handleAssignPermission(row)">分配权限</el-button>
-              <el-button link type="danger" class="action-btn delete-btn" @click="handleDelete(row)">删除</el-button>
+              <el-button v-permission="['role:edit']" link type="primary" class="action-btn edit-btn" @click="handleUpdate(row)">编辑</el-button>
+              <el-button v-permission="['role:assign']" link type="warning" class="action-btn permission-btn" @click="handleAssignPermission(row)">分配权限</el-button>
+              <el-button v-permission="['role:delete']" link type="danger" class="action-btn delete-btn" @click="handleDelete(row)">删除</el-button>
             </div>
           </template>
         </el-table-column>
@@ -184,12 +184,35 @@ function handleAssignPermission(row: any) {
   // 获取菜单树
   getMenuTreeApi().then(({ data }) => {
     menuTree.value = data as MenuNode[]
-  })
 
-  // 获取已选菜单
-  getRoleMenuIdsApi(row.roleId).then(({ data }) => {
-    selectedMenuIds.value = data
+    // 获取已选菜单后，过滤出叶子节点
+    getRoleMenuIdsApi(row.roleId).then(({ data }) => {
+      // 只勾选叶子节点，避免父节点勾选导致子节点全选
+      const leafIds = filterLeafIds(data, menuTree.value)
+      selectedMenuIds.value = leafIds
+    })
   })
+}
+
+// 过滤出叶子节点 ID
+function filterLeafIds(ids: number[], tree: MenuNode[]): number[] {
+  const allNodeIds = new Set<number>()
+  const parentNodeIds = new Set<number>()
+
+  // 遍历树，收集所有节点和父节点
+  function traverse(nodes: MenuNode[]) {
+    nodes.forEach(node => {
+      allNodeIds.add(node.id)
+      if (node.children && node.children.length > 0) {
+        parentNodeIds.add(node.id)
+        traverse(node.children)
+      }
+    })
+  }
+  traverse(tree)
+
+  // 只返回存在于 ids 中且不是父节点的 ID
+  return ids.filter(id => allNodeIds.has(id) && !parentNodeIds.has(id))
 }
 
 function submitPermission() {

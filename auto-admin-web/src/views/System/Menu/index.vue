@@ -1,57 +1,99 @@
 <template>
-  <div class="app-container">
-    <el-card>
-      <el-row :gutter="10" style="margin-bottom: 16px">
-        <el-col :span="1.5">
-          <el-button type="primary" @click="handleAdd">
+  <div class="menu-management">
+    <el-card class="menu-card">
+      <!-- 顶部工具栏 -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <el-button v-permission="['menu:add']" type="primary" @click="handleAdd()">
             <el-icon><Plus /></el-icon>
-            新增
+            新增菜单
           </el-button>
-        </el-col>
-      </el-row>
+        </div>
+        <div class="toolbar-right">
+          <el-button @click="handleExpandAll">
+            <el-icon><Plus /></el-icon>
+            展开全部
+          </el-button>
+          <el-button @click="handleCollapseAll">
+            <el-icon><Minus /></el-icon>
+            收起全部
+          </el-button>
+        </div>
+      </div>
 
+      <!-- 表格 -->
       <el-table
         v-loading="loading"
         :data="tableData"
         row-key="id"
         :expand-row-keys="expandedKeys"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-        class="simple-table"
-        stripe
+        class="menu-table"
+        :header-cell-style="{ background: '#fafafa', color: '#606266', fontWeight: '500' }"
+        :cell-style="{ padding: '12px 0' }"
       >
-        <el-table-column prop="name" label="菜单名称" width="180" />
-        <el-table-column prop="icon" label="图标" width="80">
+        <el-table-column prop="name" label="菜单名称" min-width="180">
           <template #default="{ row }">
-            <el-icon v-if="row.icon" :size="20">
-              <component :is="row.icon" />
-            </el-icon>
+            <div class="menu-name-cell">
+              <el-icon v-if="row.type === 1" class="type-icon directory"><Folder /></el-icon>
+              <el-icon v-else-if="row.type === 2" class="type-icon menu"><Document /></el-icon>
+              <el-icon v-else class="type-icon button"><Checked /></el-icon>
+              <span>{{ row.name }}</span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="类型" width="80">
+        <el-table-column prop="type" label="类型" width="70" align="center">
           <template #default="{ row }">
-            <el-tag :type="getTypeTag(row.type)">
+            <el-tag :type="getTypeTag(row.type)" size="small" effect="light">
               {{ getTypeLabel(row.type) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="path" label="路由路径" width="150" />
-        <el-table-column prop="component" label="组件路径" width="180" />
-        <el-table-column prop="permission" label="权限标识" width="120" />
-        <el-table-column prop="sort" label="排序" width="60" />
-        <el-table-column label="可见性" width="80">
+        <el-table-column prop="path" label="路由路径" min-width="160">
           <template #default="{ row }">
-            <el-tag :type="row.visible === 1 ? 'success' : 'info'">
-              {{ row.visible === 1 ? '显示' : '隐藏' }}
-            </el-tag>
+            <div v-if="row.path" class="path-cell">
+              <code class="path-code">{{ row.path }}</code>
+              <el-icon class="copy-icon" @click="copyText(row.path)" title="复制"><DocumentCopy /></el-icon>
+            </div>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="200">
+        <el-table-column prop="permission" label="权限标识" min-width="120">
           <template #default="{ row }">
-            <div class="action-buttons">
-              <el-button link type="success" class="action-btn add-btn" @click="handleAdd(row)">新增</el-button>
-              <el-button link type="primary" class="action-btn edit-btn" @click="handleUpdate(row)">编辑</el-button>
-              <el-button link type="danger" class="action-btn delete-btn" @click="handleDelete(row)">删除</el-button>
+            <div v-if="row.permission" class="path-cell">
+              <code class="permission-code">{{ row.permission }}</code>
+              <el-icon class="copy-icon" @click="copyText(row.permission)" title="复制"><DocumentCopy /></el-icon>
             </div>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="sort" label="排序" width="60" align="center">
+          <template #default="{ row }">
+            <span class="sort-num">{{ row.sort }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="可见" width="60" align="center">
+          <template #default="{ row }">
+            <el-switch
+              v-model="row.visible"
+              :active-value="1"
+              :inactive-value="0"
+              size="small"
+              @change="handleVisibleChange(row)"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" align="center" fixed="right">
+          <template #default="{ row }">
+            <el-button v-permission="['menu:add']" link type="success" size="small" @click="handleAdd(row)">
+              <el-icon><Plus /></el-icon>新增
+            </el-button>
+            <el-button v-permission="['menu:edit']" link type="primary" size="small" @click="handleUpdate(row)">
+              <el-icon><Edit /></el-icon>编辑
+            </el-button>
+            <el-button v-permission="['menu:delete']" link type="danger" size="small" @click="handleDelete(row)">
+              <el-icon><Delete /></el-icon>删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -112,7 +154,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { getMenuTreeApi, addMenuApi, updateMenuApi, deleteMenuApi } from '@/api/menu'
+import { Plus, Minus, Edit, Delete, Folder, Document, Checked, DocumentCopy } from '@element-plus/icons-vue'
+import { getMenuTreeApi, addMenuApi, updateMenuApi, deleteMenuApi, getRelatedApiCountApi } from '@/api/menu'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -152,6 +195,31 @@ function getTypeTag(type: number) {
   return tags[type] || ''
 }
 
+function handleExpandAll() {
+  expandedKeys.value = getAllIds(tableData.value)
+}
+
+function handleCollapseAll() {
+  expandedKeys.value = []
+}
+
+function getAllIds(data: any[]): string[] {
+  const ids: string[] = []
+  data.forEach(item => {
+    ids.push(item.id)
+    if (item.children && item.children.length > 0) {
+      ids.push(...getAllIds(item.children))
+    }
+  })
+  return ids
+}
+
+function handleVisibleChange(row: any) {
+  updateMenuApi(row).then(() => {
+    ElMessage.success('更新成功')
+  })
+}
+
 function handleQuery() {
   loading.value = true
   getMenuTreeApi().then(({ data }) => {
@@ -186,12 +254,21 @@ function handleUpdate(row: any) {
   dialogVisible.value = true
 }
 
-function handleDelete(row: any) {
+async function handleDelete(row: any) {
   if (row.children && row.children.length > 0) {
     ElMessage.warning('存在子菜单，无法删除')
     return
   }
-  ElMessageBox.confirm(`确认删除菜单 "${row.name}" 吗？`, '提示', { type: 'warning' }).then(() => {
+
+  // 获取关联的接口数量
+  const { data: apiCount } = await getRelatedApiCountApi(row.id)
+
+  let confirmMessage = `确认删除菜单 "${row.name}" 吗？`
+  if (apiCount > 0) {
+    confirmMessage = `该菜单关联 ${apiCount} 个接口，删除后接口将变为未分配状态。确认删除吗？`
+  }
+
+  ElMessageBox.confirm(confirmMessage, '提示', { type: 'warning' }).then(() => {
     deleteMenuApi(row.id).then(() => {
       ElMessage.success('删除成功')
       handleQuery()
@@ -213,100 +290,153 @@ function submitForm() {
   })
 }
 
+function copyText(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success('已复制')
+  })
+}
+
 onMounted(() => {
   handleQuery()
 })
 </script>
 
 <style lang="scss" scoped>
-.app-container {
-  padding: 20px;
+.menu-management {
+  padding: 16px;
+  min-height: calc(100vh - 84px);
+  background: #f5f7fa;
 }
 
-// 简约表格样式 - 只有横线 + 斑马纹
-.simple-table {
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: transparent;
+.menu-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 
-  :deep(.el-table__header) {
-    th {
-      background: transparent;
-      border-bottom: 1px solid #ebeef5;
-    }
-  }
-
-  :deep(.el-table__row) {
-    td {
-      border-bottom: 1px solid #ebeef5;
-    }
-
-    &:hover td {
-      background: #f5f7fa;
-    }
-  }
-
-  // 斑马纹
-  :deep(.el-table__row--striped) {
-    td {
-      background: #fafafa;
-    }
-
-    &:hover td {
-      background: #f5f7fa;
-    }
-  }
-
-  :deep(.el-table) {
-    &::before {
-      height: 0;
-    }
+  :deep(.el-card__body) {
+    padding: 0;
   }
 }
 
-// 操作按钮样式
-.action-buttons {
+.toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #ebeef5;
 
-  .action-btn {
-    padding: 4px 10px;
-    font-size: 13px;
-    border-radius: 4px;
-    transition: all 0.25s ease;
-    border: 1px solid transparent;
+  .toolbar-left, .toolbar-right {
+    display: flex;
+    gap: 8px;
+  }
+}
 
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
+.menu-table {
+  .menu-name-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    vertical-align: middle;
 
-    &.add-btn {
-      border-color: var(--el-color-success);
-      color: var(--el-color-success);
+    .type-icon {
+      font-size: 16px;
 
-      &:hover {
-        background: var(--el-color-success-light-9);
-      }
-    }
-
-    &.edit-btn {
-      border-color: var(--el-color-primary);
-      color: var(--el-color-primary);
-
-      &:hover {
-        background: var(--el-color-primary-light-9);
-      }
-    }
-
-    &.delete-btn {
-      border-color: var(--el-color-danger);
-      color: var(--el-color-danger);
-
-      &:hover {
-        background: var(--el-color-danger-light-9);
-      }
+      &.directory { color: #409EFF; }
+      &.menu { color: #67C23A; }
+      &.button { color: #E6A23C; }
     }
   }
+
+  .path-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+
+    .copy-icon {
+      cursor: pointer;
+      color: #909399;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #409EFF;
+      }
+    }
+
+    &:hover .copy-icon {
+      opacity: 1;
+    }
+  }
+
+  .path-code, .permission-code {
+    background: #ecf5ff;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 13px;
+    color: #303133;
+    font-weight: 500;
+  }
+
+  .text-muted {
+    color: #c0c4cc;
+  }
+
+  .sort-num {
+    display: inline-block;
+    background: #f0f2f5;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #909399;
+  }
+}
+
+:deep(.el-table__row) {
+  &:hover > td {
+    background: #fafafa !important;
+  }
+}
+
+:deep(.el-table__row--level-0) {
+  > td:first-child {
+    padding-left: 20px;
+  }
+}
+
+// 折叠箭头样式优化
+:deep(.el-table__expand-icon) {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #f0f2f5;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+  vertical-align: middle;
+
+  .el-icon {
+    font-size: 12px;
+    color: #606266;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background: #e4e7ed;
+  }
+
+  // 展开状态
+  &.el-table__expand-icon--expanded {
+    .el-icon {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// 空占位符（没有子节点的行）
+:deep(.el-table__placeholder) {
+  width: 22px;
+  display: inline-block;
 }
 </style>

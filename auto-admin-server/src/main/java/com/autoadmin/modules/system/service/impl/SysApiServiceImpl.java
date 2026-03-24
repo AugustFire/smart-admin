@@ -17,17 +17,26 @@ import java.util.Set;
 public class SysApiServiceImpl extends BaseServiceImpl<SysApiMapper, SysApi> implements SysApiService {
 
     @Override
-    public Set<SysApi> getApisByMenuIds(Set<Long> menuIds) {
-        if (menuIds == null || menuIds.isEmpty()) {
+    public Set<SysApi> getApisByIds(Set<Long> apiIds) {
+        if (apiIds == null || apiIds.isEmpty()) {
             return new HashSet<>();
         }
 
-        // 根据菜单 ID 列表查询关联的接口
         List<SysApi> apis = lambdaQuery()
-                .in(SysApi::getMenuId, menuIds)
-                .eq(SysApi::getStatus, 1) // 只查询启用的接口
+                .in(SysApi::getId, apiIds)
+                .eq(SysApi::getStatus, 1)
                 .list();
 
         return new HashSet<>(apis);
+    }
+
+    @Override
+    public boolean isPublicApi(String path, String method) {
+        return lambdaQuery()
+                .eq(SysApi::getPath, path)
+                .eq(SysApi::getMethod, method)
+                .eq(SysApi::getIsPublic, 1)
+                .eq(SysApi::getStatus, 1)
+                .exists();
     }
 }

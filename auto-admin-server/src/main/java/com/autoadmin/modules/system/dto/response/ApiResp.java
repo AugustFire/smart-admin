@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 接口资源响应
@@ -29,8 +30,14 @@ public class ApiResp implements Serializable {
     @Schema(description = "接口名称")
     private String name;
 
-    @Schema(description = "关联的菜单 ID")
-    private Long menuId;
+    @Schema(description = "是否公开接口：0=否，1=是")
+    private Integer isPublic;
+
+    @Schema(description = "关联的菜单 ID 列表")
+    private List<Long> menuIds;
+
+    @Schema(description = "关联的菜单名称列表")
+    private List<String> menuNames;
 
     @Schema(description = "状态：1=启用，0=禁用")
     private Integer status;

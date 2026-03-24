@@ -22,12 +22,10 @@ export const usePermissionStore = defineStore('permission', {
       const routes: RouteRecordRaw[] = []
 
       menus.forEach((menu) => {
-        // 只处理目录和菜单类型，跳过按钮和接口
+        // 只处理目录和菜单类型，跳过按钮
         if (menu.type === 1 || menu.type === 2) {
-          if (menu.visible === 1) {
-            const route = this.buildRoute(menu)
-            routes.push(route)
-          }
+          const route = this.buildRoute(menu)
+          routes.push(route)
         }
       })
 
@@ -47,6 +45,7 @@ export const usePermissionStore = defineStore('permission', {
           icon: menu.icon,
           menuId: menu.id,
           type: menu.type,
+          hidden: menu.visible === 0, // visible=0 表示隐藏，不在侧边栏显示
         },
       }
 
@@ -82,10 +81,8 @@ export const usePermissionStore = defineStore('permission', {
           return
         }
 
-        if (child.visible === 1) {
-          const route = this.buildRoute(child)
-          routes.push(route)
-        }
+        const route = this.buildRoute(child)
+        routes.push(route)
       })
 
       return routes

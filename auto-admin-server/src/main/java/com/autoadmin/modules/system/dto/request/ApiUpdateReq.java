@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 更新接口请求
@@ -32,8 +33,11 @@ public class ApiUpdateReq implements Serializable {
     @Schema(description = "接口名称", example = "获取用户列表")
     private String name;
 
-    @Schema(description = "关联的菜单 ID", example = "10")
-    private Long menuId;
+    @Schema(description = "关联的菜单 ID 列表（支持多选）", example = "[10, 11]")
+    private List<Long> menuIds;
+
+    @Schema(description = "是否公开接口：0=否，1=是", example = "0")
+    private Integer isPublic;
 
     @Schema(description = "状态：1=启用，0=禁用", example = "1")
     private Integer status;

@@ -3,6 +3,7 @@ package com.autoadmin.interceptor;
 import com.autoadmin.common.exception.AuthenticationException;
 import com.autoadmin.config.JwtProperties;
 import com.autoadmin.utils.JwtUtils;
+import com.autoadmin.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.List;
 
 /**
  * JWT 拦截器
- * 验证 Token 有效性，将用户信息存入请求上下文
+ * 验证 Token 有效性，将用户信息存入 UserContext
  */
 @Slf4j
 @Component
@@ -62,13 +63,19 @@ public class JwtInterceptor implements HandlerInterceptor {
             throw new AuthenticationException("Token 无效或已过期");
         }
 
-        // 将用户信息存入请求属性，供后续使用
+        // 将用户信息存入 UserContext
         Long userId = jwtUtils.getUserIdFromToken(token);
         String username = jwtUtils.getUsernameFromToken(token);
-        request.setAttribute("userId", userId);
-        request.setAttribute("username", username);
+        UserContext.setUserId(userId);
+        UserContext.setUsername(username);
 
         return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        // 清理 UserContext，防止内存泄漏
+        UserContext.clear();
     }
 
     /**

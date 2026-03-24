@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { UserInfo } from '@/types/user'
 import { loginApi, getUserInfoApi, logoutApi } from '@/api/auth'
+import { useTagsViewStore } from './tagsView'
 
 interface UserState {
   token: string
@@ -51,6 +52,11 @@ export const useUserStore = defineStore('user', {
         nickname: data.nickname,
         avatar: data.avatar,
       })
+
+      // 清除上一个用户的标签页数据
+      const tagsViewStore = useTagsViewStore()
+      tagsViewStore.delAllViews()
+
       return data
     },
 

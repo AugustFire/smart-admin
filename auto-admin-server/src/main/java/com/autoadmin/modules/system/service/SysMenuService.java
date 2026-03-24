@@ -44,4 +44,9 @@ public interface SysMenuService extends BaseService<SysMenu> {
      * 获取用户的菜单树
      */
     List<SysMenu> getMenuTreeByUserId(Long userId);
+
+    /**
+     * 获取用户的所有菜单（包括按钮），用于提取权限标识
+     */
+    List<SysMenu> getMenusByUserId(Long userId);
 }

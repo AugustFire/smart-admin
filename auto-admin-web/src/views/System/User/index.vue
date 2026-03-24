@@ -24,7 +24,7 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" style="margin-bottom: 16px">
         <el-col :span="1.5">
-          <el-button type="primary" @click="handleAdd">
+          <el-button v-permission="['user:add']" type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon>
             新增
           </el-button>
@@ -56,10 +56,10 @@
         <el-table-column label="操作" fixed="right" width="280">
           <template #default="{ row }">
             <div class="action-buttons">
-              <el-button link type="primary" class="action-btn edit-btn" @click="handleUpdate(row)">编辑</el-button>
-              <el-button link type="warning" class="action-btn pwd-btn" @click="handleResetPwd(row)">重置密码</el-button>
-              <el-button link type="info" class="action-btn role-btn" @click="handleAssignRole(row)">分配角色</el-button>
-              <el-button link type="danger" class="action-btn delete-btn" @click="handleDelete(row)">删除</el-button>
+              <el-button v-permission="['user:edit']" link type="primary" class="action-btn edit-btn" @click="handleUpdate(row)">编辑</el-button>
+              <el-button v-permission="['user:resetPwd']" link type="warning" class="action-btn pwd-btn" @click="handleResetPwd(row)">重置密码</el-button>
+              <el-button v-permission="['user:assignRole']" link type="info" class="action-btn role-btn" @click="handleAssignRole(row)">分配角色</el-button>
+              <el-button v-permission="['user:delete']" link type="danger" class="action-btn delete-btn" @click="handleDelete(row)">删除</el-button>
             </div>
           </template>
         </el-table-column>

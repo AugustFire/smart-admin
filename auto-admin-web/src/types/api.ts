@@ -3,7 +3,9 @@ export interface SysApi {
   path: string
   method: string
   name?: string
-  menuId?: number
+  isPublic?: number
+  menuIds?: number[]
+  menuNames?: string[]
   status?: number
   remark?: string
   creator?: string

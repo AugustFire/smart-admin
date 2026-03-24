@@ -41,3 +41,10 @@ export function deleteMenuApi(id: number) {
 export function getMenuOptionsApi() {
   return http.get('/menu/options')
 }
+
+/**
+ * 获取菜单关联的接口数量
+ */
+export function getRelatedApiCountApi(id: number) {
+  return http.get(`/menu/relatedApiCount/${id}`)
+}

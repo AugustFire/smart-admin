@@ -5,6 +5,7 @@ import com.autoadmin.modules.system.entity.SysRoleMenu;
 import com.autoadmin.modules.system.mapper.SysRoleMenuMapper;
 import com.autoadmin.modules.system.service.SysRoleMenuService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,13 +52,17 @@ public class SysRoleMenuServiceImpl extends BaseServiceImpl<SysRoleMenuMapper, S
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void assignMenus(Long roleId, List<Long> menuIds) {
-        // 删除原有菜单
-        deleteByRoleId(roleId);
+        // 删除原有菜单关联
+        lambdaUpdate()
+                .eq(SysRoleMenu::getRoleId, roleId)
+                .remove();
 
-        // 添加新菜单
+        // 添加新菜单关联（去重）
         if (menuIds != null && !menuIds.isEmpty()) {
-            List<SysRoleMenu> roleMenus = menuIds.stream()
+            Set<Long> uniqueMenuIds = new HashSet<>(menuIds);
+            List<SysRoleMenu> roleMenus = uniqueMenuIds.stream()
                     .map(menuId -> {
                         SysRoleMenu roleMenu = new SysRoleMenu();
                         roleMenu.setRoleId(roleId);

@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 // 响应数据接口
 export interface Result<T = any> {
@@ -7,17 +7,6 @@ export interface Result<T = any> {
   message: string
   data: T
   timestamp?: number
-}
-
-// 显示消息（避免重复）
-function showMessage(type: 'success' | 'error' | 'warning' | 'info', message: string) {
-  // 直接显示消息，不关闭之前的消息，避免闪烁问题
-  ElMessage({
-    type,
-    message,
-    duration: 3000,
-    offset: 60,
-  })
 }
 
 // 创建 axios 实例
@@ -73,44 +62,32 @@ service.interceptors.response.use(
 
     // 未授权
     if (res.code === 401) {
-      ElMessageBox.confirm('登录状态已过期，请重新登录', '提示', {
-        confirmButtonText: '重新登录',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }).then(() => {
-        localStorage.removeItem('user-store')
-        window.location.reload()
-      })
+      ElMessage.warning('登录状态已过期，请重新登录')
+      localStorage.removeItem('user-store')
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
       return Promise.reject(new Error(res.message || 'Error'))
     }
 
     // 禁止访问
     if (res.code === 403) {
-      showMessage('warning', '无权访问')
+      ElMessage.warning(res.message || '暂无访问权限')
       return Promise.reject(new Error(res.message || 'Error'))
     }
 
     // 其他错误 - 使用优化后的消息提示
-    showMessage('error', res.message || '请求失败')
+    ElMessage.error(res.message || '请求失败')
     return Promise.reject(new Error(res.message || 'Error'))
   },
   (error) => {
-    console.error('响应错误:', error)
-
     let message = '网络错误，请稍后重试'
 
     if (error.response) {
       const status = error.response.status
-      // 更友好的错误提示文案
       switch (status) {
         case 400:
           message = '请求参数有误'
-          break
-        case 401:
-          message = '登录已过期，请重新登录'
-          break
-        case 403:
-          message = '暂无访问权限'
           break
         case 404:
           message = '请求的资源不存在'
@@ -134,7 +111,12 @@ service.interceptors.response.use(
       message = '网络连接失败，请检查网络'
     }
 
-    showMessage('error', message)
+    ElMessage({
+      type: 'error',
+      message,
+      duration: 3000,
+      offset: 60,
+    })
     return Promise.reject(error)
   }
 )

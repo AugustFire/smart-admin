@@ -7,7 +7,7 @@
       </div>
       <div class="banner-stats">
         <div class="stat-item">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+          <div class="stat-icon primary-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
@@ -137,13 +137,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/store/modules/user'
+import { useThemeStore } from '@/store/modules/theme'
 
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const nickname = computed(() => userStore.nickname)
 
 const techStack = ref([
   { name: 'Vue', version: '3.4', icon: 'View', tagType: 'success', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
-  { name: 'TypeScript', version: '5.4', icon: 'Files', tagType: 'info', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
+  { name: 'TypeScript', version: '5.4', icon: 'Files', tagType: 'info', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
   { name: 'Element Plus', version: '2.6', icon: 'Grid', tagType: 'warning', gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' },
   { name: 'Spring Boot', version: '3.2', icon: 'Monitor', tagType: 'danger', gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' },
   { name: 'MyBatis Plus', version: '3.5', icon: 'Database', tagType: 'info', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' },
@@ -159,8 +161,8 @@ const features = ref([
   { name: '操作日志', status: '已完成', description: '操作记录查询（AOP 记录）' },
 ])
 
-const quickLinks = ref([
-  { name: '用户管理', icon: 'User', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
+const quickLinks = computed(() => [
+  { name: '用户管理', icon: 'User', gradient: `linear-gradient(135deg, ${themeStore.themeColors.find(c => c.name === themeStore.currentColor)?.primary || '#FE4066'} 0%, ${themeStore.themeColors.find(c => c.name === themeStore.currentColor)?.primaryLight3 || '#fe6b87'} 100%)` },
   { name: '角色管理', icon: 'Peoples', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' },
   { name: '菜单管理', icon: 'Menu', gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' },
   { name: '系统设置', icon: 'Setting', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
@@ -170,11 +172,11 @@ const quickLinks = ref([
 <style lang="scss" scoped>
 .dashboard-container {
   .welcome-banner {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
     border-radius: 16px;
     padding: 40px;
     color: #fff;
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
@@ -241,6 +243,10 @@ const quickLinks = ref([
           border-radius: 16px;
           flex-shrink: 0;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+          &.primary-icon {
+            background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
+          }
         }
 
         .stat-info {

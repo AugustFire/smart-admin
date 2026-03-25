@@ -64,7 +64,7 @@ function toggleClick() {
 
   .line {
     fill: none;
-    stroke: var(--hamburger-color, #3b82f6);
+    stroke: var(--hamburger-color, #FE4066);
     stroke-width: 6;
     stroke-linecap: round;
     transition: all 0.3s ease-in-out;

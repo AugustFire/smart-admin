@@ -118,7 +118,6 @@
           v-loading="loading"
           :data="tableData"
           class="api-table"
-          :header-cell-style="{ background: '#fafafa', color: '#606266', fontWeight: '500', padding: '10px 0' }"
           :cell-style="{ padding: '8px 0' }"
           size="small"
           stripe
@@ -128,11 +127,12 @@
               <span class="api-name">{{ row.name || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="接口" min-width="220">
+          <el-table-column label="接口" min-width="240">
             <template #default="{ row }">
               <div class="api-cell">
                 <el-tag :type="getMethodType(row.method)" size="small" class="method-tag">{{ row.method }}</el-tag>
                 <code class="api-path">{{ row.path }}</code>
+                <el-icon class="copy-icon" @click="copyPath(row.path)" title="复制路径"><DocumentCopy /></el-icon>
               </div>
             </template>
           </el-table-column>
@@ -288,7 +288,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Unlock, CircleCheck, CircleClose, Edit, Delete, Link } from '@element-plus/icons-vue'
+import { Unlock, CircleCheck, CircleClose, Edit, Delete, Link, DocumentCopy } from '@element-plus/icons-vue'
 import { getApiPageApi, addApiApi, updateApiApi, deleteApiApi } from '@/api/api'
 import { getMenuTreeApi } from '@/api/menu'
 import type { SysApi } from '@/types/api'
@@ -359,6 +359,14 @@ function getMethodType(method: string) {
     DELETE: 'danger',
   }
   return typeMap[method] || 'info'
+}
+
+function copyPath(path: string) {
+  navigator.clipboard.writeText(path).then(() => {
+    ElMessage.success('已复制: ' + path)
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
 }
 
 function handleExpandAll() {
@@ -526,7 +534,7 @@ onMounted(() => {
 .api-management {
   display: flex;
   height: calc(100vh - 84px);
-  background: #f5f7fa;
+  background: var(--app-main-bg-color);
   padding: 12px;
   gap: 12px;
 }
@@ -534,9 +542,9 @@ onMounted(() => {
 // 左侧边栏
 .left-sidebar {
   width: 240px;
-  background: #fff;
+  background: var(--bg-primary);
   border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
@@ -548,7 +556,7 @@ onMounted(() => {
 
   .sidebar-header {
     padding: 10px;
-    border-bottom: 1px solid #ebeef5;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -557,7 +565,7 @@ onMounted(() => {
     .title {
       font-size: 14px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 
@@ -589,18 +597,19 @@ onMounted(() => {
 
   .menu-icon {
     font-size: 15px;
-    color: #909399;
+    color: var(--text-secondary);
   }
 
   .menu-name {
     flex: 1;
     font-size: 13px;
+    color: var(--text-regular);
   }
 
   .api-count {
     font-size: 11px;
-    color: #606266;
-    background: #e4e7ed;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
     padding: 1px 6px;
     border-radius: 10px;
     min-width: 18px;
@@ -620,9 +629,9 @@ onMounted(() => {
 .main-content {
   flex: 1;
   min-width: 0;
-  background: #fff;
+  background: var(--bg-primary);
   border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -630,7 +639,7 @@ onMounted(() => {
 
 .content-header {
   padding: 12px 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -644,7 +653,7 @@ onMounted(() => {
     .clear-select {
       margin-left: 4px;
       cursor: pointer;
-      color: #909399;
+      color: var(--text-secondary);
       font-size: 14px;
       &:hover {
         color: var(--el-color-primary);
@@ -653,7 +662,7 @@ onMounted(() => {
 
     .total-count {
       font-size: 13px;
-      color: #909399;
+      color: var(--text-secondary);
     }
   }
 
@@ -665,7 +674,7 @@ onMounted(() => {
 
 .search-bar {
   padding: 10px 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   gap: 10px;
   flex-shrink: 0;
@@ -684,15 +693,40 @@ onMounted(() => {
   overflow: auto;
   padding: 0 16px;
 
+  .api-table {
+    :deep(.el-table__header th) {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-weight: 500;
+      padding: 10px 0;
+    }
+  }
+
   .api-name {
     font-size: 13px;
-    color: #303133;
+    color: var(--text-primary);
   }
 
   .api-cell {
     display: flex;
     align-items: center;
     gap: 8px;
+
+    .copy-icon {
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
+    }
+
+    &:hover .copy-icon {
+      opacity: 1;
+    }
   }
 
   .method-tag {
@@ -704,17 +738,17 @@ onMounted(() => {
   }
 
   .api-path {
-    background: #f0f2f5;
+    background: var(--bg-secondary);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
     font-size: 13px;
-    color: #303133;
+    color: var(--text-primary);
     font-weight: 500;
   }
 
   .text-muted {
-    color: #c0c4cc;
+    color: var(--text-placeholder);
   }
 
   .icon-public {
@@ -728,14 +762,14 @@ onMounted(() => {
   }
 
   .icon-disabled {
-    color: #909399;
+    color: var(--text-secondary);
     font-size: 16px;
   }
 }
 
 .pagination-wrapper {
   padding: 12px 16px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   flex-shrink: 0;
@@ -746,9 +780,10 @@ onMounted(() => {
   .bind-info {
     margin-bottom: 12px;
     padding: 10px 12px;
-    background: #f5f7fa;
+    background: var(--bg-secondary);
     border-radius: 6px;
     font-size: 14px;
+    color: var(--text-regular);
 
     .el-tag {
       margin-left: 8px;
@@ -756,17 +791,18 @@ onMounted(() => {
   }
 
   .api-path-small {
-    background: #f5f7fa;
+    background: var(--bg-secondary);
     padding: 2px 6px;
     border-radius: 3px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 12px;
+    color: var(--text-regular);
   }
 }
 
 .form-tip {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-top: 4px;
 }
 
@@ -778,12 +814,12 @@ onMounted(() => {
   position: relative;
 
   &:hover {
-    background: #f5f7fa;
+    background: var(--bg-secondary);
   }
 }
 
 :deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background: #ecf5ff;
+  background: var(--el-color-primary-light-9);
 
   &::before {
     content: '';

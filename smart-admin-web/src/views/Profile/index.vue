@@ -252,11 +252,11 @@ onMounted(() => {
 
   // 顶部用户信息卡片
   .profile-header-card {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
     border-radius: 16px;
     padding: 40px;
     margin-bottom: 24px;
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
 
@@ -487,7 +487,7 @@ onMounted(() => {
           font-size: 24px;
 
           &.blue {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
           }
 
           &.green {
@@ -529,7 +529,8 @@ html[data-theme='dark'] {
 
     .info-card,
     .password-card,
-    .quick-actions-card {
+    .quick-actions-card,
+    .theme-card {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 

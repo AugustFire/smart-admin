@@ -274,14 +274,13 @@ onUnmounted(() => {
         color: var(--el-color-primary);
         background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, #fff 100%);
         transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(59, 130, 246, 0.15);
       }
 
       &.active {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
         color: #fff;
         border-color: transparent;
-        box-shadow: 0 2px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
         font-weight: 500;
 
         .close-icon {

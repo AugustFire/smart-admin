@@ -166,6 +166,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .app-container {
   padding: 20px;
+  background: var(--app-main-bg-color);
+  min-height: calc(100vh - 84px);
 }
 
 // 简约表格样式 - 只有横线 + 斑马纹
@@ -175,29 +177,29 @@ onMounted(() => {
 
   :deep(.el-table__header) {
     th {
-      background: transparent;
-      border-bottom: 1px solid #ebeef5;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
     }
   }
 
   :deep(.el-table__row) {
     td {
-      border-bottom: 1px solid #ebeef5;
+      border-bottom: 1px solid var(--border-color);
     }
 
     &:hover td {
-      background: #f5f7fa;
+      background: var(--bg-secondary);
     }
   }
 
   // 斑马纹
   :deep(.el-table__row--striped) {
     td {
-      background: #fafafa;
+      background: var(--bg-secondary);
     }
 
     &:hover td {
-      background: #f5f7fa;
+      background: var(--bg-tertiary);
     }
   }
 
@@ -227,15 +229,25 @@ onMounted(() => {
     }
 
     &.detail-btn {
-      border-color: #909399;
-      color: #606266;
+      border-color: var(--border-color);
+      color: var(--text-secondary);
 
       &:hover {
-        background: #f5f7fa;
-        border-color: #606266;
-        color: #606266;
+        background: var(--bg-secondary);
+        border-color: var(--text-secondary);
+        color: var(--text-regular);
       }
     }
+  }
+}
+
+:deep(.el-form-item) {
+  .el-input {
+    width: 180px;
+  }
+
+  .el-select {
+    width: 120px;
   }
 }
 </style>

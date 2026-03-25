@@ -233,10 +233,10 @@ function handleLogin() {
       .error-msg {
         padding: 12px 16px;
         margin-bottom: 20px;
-        background: #fff2f4;
-        border: 1px solid #ffcdd3;
+        background: var(--el-color-primary-light-9);
+        border: 1px solid var(--el-color-primary-light-7);
         border-radius: 8px;
-        color: #FE4066;
+        color: var(--el-color-primary);
         font-size: 14px;
       }
 
@@ -268,7 +268,7 @@ function handleLogin() {
             }
 
             &.is-focus {
-              border-color: #FE4066;
+              border-color: var(--el-color-primary);
             }
           }
 
@@ -288,14 +288,14 @@ function handleLogin() {
           height: 50px;
           font-size: 16px;
           font-weight: 600;
-          background: #FE4066;
+          background: var(--el-color-primary);
           border: none;
           border-radius: 8px;
           margin-top: 12px;
           transition: all 0.2s;
 
           &:hover {
-            background: #e63055;
+            background: var(--el-color-primary-light-3);
             transform: translateY(-1px);
           }
 
@@ -317,7 +317,7 @@ function handleLogin() {
         }
 
         .value {
-          color: #FE4066;
+          color: var(--el-color-primary);
           font-weight: 500;
         }
       }
@@ -370,6 +370,61 @@ function handleLogin() {
   .right-section {
     width: 100%;
     padding: 20px;
+  }
+}
+
+// 登录页始终使用浅色主题，不受系统主题影响
+html[data-theme='dark'] .login-page {
+  .right-section .login-card {
+    background: #fff;
+
+    .card-title {
+      color: #1a1a1a;
+    }
+
+    .login-form .form-item {
+      label {
+        color: #353030;
+      }
+
+      :deep(.el-input__wrapper) {
+        background: #fff;
+        border-color: #e0e0e0;
+
+        &:hover {
+          border-color: #bbb;
+        }
+
+        &.is-focus {
+          border-color: var(--el-color-primary);
+        }
+      }
+
+      :deep(.el-input__inner) {
+        color: #353030;
+
+        &::placeholder {
+          color: #bbb;
+        }
+      }
+    }
+
+    .demo-tip {
+      border-top-color: #f0f0f0;
+
+      .label {
+        color: #999;
+      }
+    }
+  }
+
+  :deep(.el-input__wrapper) {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  :deep(.el-input__inner) {
+    color: #353030 !important;
   }
 }
 </style>

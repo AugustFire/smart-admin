@@ -1,6 +1,32 @@
 <template>
   <div class="app-container">
     <el-card>
+      <!-- 搜索栏 -->
+      <el-form :model="queryParams" inline>
+        <el-form-item label="角色名称">
+          <el-input v-model="queryParams.name" placeholder="请输入角色名称" clearable />
+        </el-form-item>
+        <el-form-item label="角色编码">
+          <el-input v-model="queryParams.code" placeholder="请输入角色编码" clearable />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="queryParams.status" placeholder="全部" clearable>
+            <el-option label="正常" :value="1" />
+            <el-option label="禁用" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
+          <el-button @click="resetQuery">
+            <el-icon><Refresh /></el-icon>
+            重置
+          </el-button>
+        </el-form-item>
+      </el-form>
+
       <!-- 操作按钮 -->
       <el-row :gutter="10" style="margin-bottom: 16px">
         <el-col :span="1.5">
@@ -35,6 +61,17 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 分页 -->
+      <el-pagination
+        v-model:current-page="queryParams.pageNum"
+        v-model:page-size="queryParams.pageSize"
+        :total="total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleQuery"
+        @current-change="handleQuery"
+      />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -86,9 +123,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
+  getRolePageApi,
   getRoleListApi,
   addRoleApi,
   updateRoleApi,
@@ -106,12 +144,21 @@ interface MenuNode {
 
 const loading = ref(false)
 const tableData = ref([])
+const total = ref(0)
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const permissionVisible = ref(false)
 
 const formRef = ref<FormInstance>()
 const menuTreeRef = ref()
+
+const queryParams = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  name: '',
+  code: '',
+  status: undefined as number | undefined,
+})
 
 const form = ref<any>({
   id: null,
@@ -132,10 +179,18 @@ const currentRoleId = ref<number | null>(null)
 
 function handleQuery() {
   loading.value = true
-  getRoleListApi().then(({ data }) => {
-    tableData.value = data
+  getRolePageApi(queryParams).then(({ data }) => {
+    tableData.value = data.list || []
+    total.value = data.total || 0
     loading.value = false
   })
+}
+
+function resetQuery() {
+  queryParams.name = ''
+  queryParams.code = ''
+  queryParams.status = undefined
+  handleQuery()
 }
 
 function handleAdd() {
@@ -236,7 +291,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .app-container {
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--app-main-bg-color);
   min-height: calc(100vh - 84px);
 }
 
@@ -250,31 +305,53 @@ onMounted(() => {
   }
 }
 
+// ============================================
+// 搜索表单
+// ============================================
+:deep(.el-form) {
+  margin-bottom: 16px;
+
+  .el-form-item {
+    margin-right: 20px;
+
+    .el-input {
+      width: 180px;
+    }
+
+    .el-select {
+      width: 120px;
+    }
+  }
+}
+
+// ============================================
+// 表格样式
+// ============================================
 .simple-table {
   --el-table-tr-bg-color: transparent;
   --el-table-header-bg-color: transparent;
 
   :deep(.el-table__header) {
     th {
-      background: #fafafa;
-      border-bottom: 1px solid #e4e7ed;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
       font-weight: 600;
     }
   }
 
   :deep(.el-table__row) {
     td {
-      border-bottom: 1px solid #ebeef5;
+      border-bottom: 1px solid var(--border-color);
     }
 
     &:hover td {
-      background: #f5f7fa;
+      background: var(--bg-secondary);
     }
   }
 
   :deep(.el-table__row--striped) {
     td {
-      background: #fafafa;
+      background: var(--bg-secondary);
     }
   }
 
@@ -339,17 +416,17 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: #ecf5ff;
+  background: var(--el-color-primary-light-9);
   border-radius: 6px;
   margin-bottom: 16px;
-  color: #409eff;
+  color: var(--el-color-primary);
   font-size: 13px;
 }
 
 .menu-tree {
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 12px;
 
@@ -359,8 +436,33 @@ onMounted(() => {
       border-radius: 4px;
 
       &:hover {
-        background: #f5f7fa;
+        background: var(--bg-secondary);
       }
+    }
+  }
+}
+
+// ============================================
+// 分页样式
+// ============================================
+:deep(.el-pagination) {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+
+  .el-pager li {
+    border-radius: 4px;
+    font-weight: 500;
+
+    &.is-active {
+      background: var(--el-color-primary);
+      color: #fff;
+    }
+
+    &:hover:not(.is-active):not(.disabled) {
+      background: var(--bg-secondary);
     }
   }
 }

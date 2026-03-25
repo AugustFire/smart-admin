@@ -138,7 +138,7 @@ const sidebarActiveTextColor = 'var(--sidebar-active-text-color)'
       color: var(--sidebar-active-text-color);
       border-left: 2px solid var(--el-color-primary);
       padding-left: 10px !important;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     // 折叠时隐藏文字
@@ -290,7 +290,7 @@ html[data-theme='dark'] {
   .sidebar-container {
     // 深色主题下保持汉堡按钮可见
     :deep(.hamburger-color) {
-      --hamburger-color: #c7d2fe;
+      --hamburger-color: var(--el-color-primary);
     }
   }
 }

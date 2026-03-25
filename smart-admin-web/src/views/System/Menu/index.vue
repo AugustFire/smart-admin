@@ -29,8 +29,8 @@
         :expand-row-keys="expandedKeys"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         class="menu-table"
-        :header-cell-style="{ background: '#fafafa', color: '#606266', fontWeight: '500' }"
-        :cell-style="{ padding: '12px 0' }"
+        :cell-style="{ padding: '6px 0' }"
+        size="small"
       >
         <el-table-column prop="name" label="菜单名称" min-width="180">
           <template #default="{ row }">
@@ -83,17 +83,11 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center" fixed="right">
+        <el-table-column label="操作" width="140" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button v-permission="['menu:add']" link type="success" size="small" @click="handleAdd(row)">
-              <el-icon><Plus /></el-icon>新增
-            </el-button>
-            <el-button v-permission="['menu:edit']" link type="primary" size="small" @click="handleUpdate(row)">
-              <el-icon><Edit /></el-icon>编辑
-            </el-button>
-            <el-button v-permission="['menu:delete']" link type="danger" size="small" @click="handleDelete(row)">
-              <el-icon><Delete /></el-icon>删除
-            </el-button>
+            <el-button v-permission="['menu:add']" link type="success" size="small" @click="handleAdd(row)">新增</el-button>
+            <el-button v-permission="['menu:edit']" link type="primary" size="small" @click="handleUpdate(row)">编辑</el-button>
+            <el-button v-permission="['menu:delete']" link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -305,12 +299,13 @@ onMounted(() => {
 .menu-management {
   padding: 16px;
   min-height: calc(100vh - 84px);
-  background: #f5f7fa;
+  background: var(--app-main-bg-color);
 }
 
 .menu-card {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  background: var(--bg-primary);
 
   :deep(.el-card__body) {
     padding: 0;
@@ -321,8 +316,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #ebeef5;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
 
   .toolbar-left, .toolbar-right {
     display: flex;
@@ -331,15 +327,25 @@ onMounted(() => {
 }
 
 .menu-table {
+  background: var(--bg-primary);
+
+  :deep(.el-table__header th) {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+
   .menu-name-cell {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 6px;
+    font-size: 13px;
     vertical-align: middle;
+    color: var(--text-regular);
 
     .type-icon {
-      font-size: 16px;
+      font-size: 14px;
 
       &.directory { color: #409EFF; }
       &.menu { color: #67C23A; }
@@ -355,13 +361,13 @@ onMounted(() => {
 
     .copy-icon {
       cursor: pointer;
-      color: #909399;
-      font-size: 14px;
+      color: var(--text-secondary);
+      font-size: 13px;
       opacity: 0;
       transition: all 0.2s;
 
       &:hover {
-        color: #409EFF;
+        color: var(--el-color-primary);
       }
     }
 
@@ -371,59 +377,81 @@ onMounted(() => {
   }
 
   .path-code, .permission-code {
-    background: #ecf5ff;
-    padding: 3px 10px;
-    border-radius: 4px;
+    background: var(--bg-secondary);
+    padding: 2px 8px;
+    border-radius: 3px;
     font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-    font-size: 13px;
-    color: #303133;
+    font-size: 12px;
+    color: var(--text-regular);
     font-weight: 500;
   }
 
   .text-muted {
-    color: #c0c4cc;
+    color: var(--text-placeholder);
+    font-size: 12px;
   }
 
   .sort-num {
     display: inline-block;
-    background: #f0f2f5;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    color: #909399;
+    background: var(--bg-secondary);
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
   }
 }
 
 :deep(.el-table__row) {
+  background: var(--bg-primary);
+
+  td {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-regular);
+    font-size: 13px;
+  }
+
   &:hover > td {
-    background: #fafafa !important;
+    background: var(--bg-secondary) !important;
   }
 }
 
 :deep(.el-table__row--level-0) {
   > td:first-child {
-    padding-left: 20px;
+    padding-left: 16px;
+  }
+}
+
+// 子级缩进
+:deep(.el-table__row--level-1) {
+  > td:first-child {
+    padding-left: 32px;
+  }
+}
+
+:deep(.el-table__row--level-2) {
+  > td:first-child {
+    padding-left: 48px;
   }
 }
 
 // 折叠箭头样式优化
 :deep(.el-table__expand-icon) {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: #f0f2f5;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--bg-secondary);
   transition: all 0.2s ease;
   margin-right: 4px;
   vertical-align: middle;
 
   .el-icon {
-    font-size: 12px;
-    color: #606266;
+    font-size: 10px;
+    color: var(--text-secondary);
     transition: transform 0.2s ease;
   }
 
   &:hover {
-    background: #e4e7ed;
+    background: var(--bg-tertiary);
   }
 
   // 展开状态
@@ -436,7 +464,7 @@ onMounted(() => {
 
 // 空占位符（没有子节点的行）
 :deep(.el-table__placeholder) {
-  width: 22px;
+  width: 20px;
   display: inline-block;
 }
 </style>

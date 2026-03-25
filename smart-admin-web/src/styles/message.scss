@@ -130,13 +130,13 @@
       transition: all 0.2s ease;
 
       &--primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
         border: none;
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
         &:hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
       }
 
@@ -176,9 +176,9 @@
 
   &.el-notification--info {
     .el-notification__icon {
-      color: #3b82f6;
+      color: var(--el-color-primary);
     }
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, var(--el-color-primary-light-7) 100%);
   }
 
   &.el-notification--success {

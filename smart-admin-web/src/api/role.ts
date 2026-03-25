@@ -1,7 +1,20 @@
 import { http } from '@/utils/request'
 
 /**
- * 获取角色列表
+ * 获取角色列表（分页）
+ */
+export function getRolePageApi(params: {
+  pageNum: number
+  pageSize: number
+  name?: string
+  code?: string
+  status?: number
+}) {
+  return http.get('/role/page', { params })
+}
+
+/**
+ * 获取所有角色列表
  */
 export function getRoleListApi() {
   return http.get('/role/list')

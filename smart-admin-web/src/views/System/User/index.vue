@@ -335,7 +335,7 @@ onMounted(() => {
 // ============================================
 .app-container {
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--app-main-bg-color);
   min-height: calc(100vh - 84px);
 }
 
@@ -360,18 +360,26 @@ onMounted(() => {
 
   .el-form-item {
     margin-right: 20px;
+
+    .el-input {
+      width: 200px;
+    }
+
+    .el-select {
+      width: 160px;
+    }
   }
 }
 
 // 主要操作按钮
 :deep(.el-button--primary) {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
   border: none;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(254, 64, 102, 0.3);
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(254, 64, 102, 0.4);
   }
 
   &:active {
@@ -385,31 +393,31 @@ onMounted(() => {
 .simple-table {
   --el-table-tr-bg-color: transparent;
   --el-table-header-bg-color: transparent;
-  --el-table-text-color: var(--el-text-color-regular);
-  --el-table-header-text-color: var(--el-text-color-secondary);
-  --el-table-row-hover-bg-color: #f5f7fa;
+  --el-table-text-color: var(--text-regular);
+  --el-table-header-text-color: var(--text-secondary);
+  --el-table-row-hover-bg-color: var(--bg-secondary);
 
   :deep(.el-table__header) {
     th {
-      background: #fafafa;
-      border-bottom: 1px solid #e4e7ed;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
       font-weight: 600;
       font-size: 14px;
-      color: var(--el-text-color-secondary);
+      color: var(--text-secondary);
       padding: 12px 0;
     }
   }
 
   :deep(.el-table__row) {
     td {
-      border-bottom: 1px solid #ebeef5;
+      border-bottom: 1px solid var(--border-color);
       padding: 14px 0;
-      color: var(--el-text-color-regular);
+      color: var(--text-regular);
       font-size: 14px;
     }
 
     &:hover td {
-      background: #f5f7fa;
+      background: var(--bg-secondary);
     }
   }
 
@@ -436,7 +444,7 @@ onMounted(() => {
   justify-content: flex-end;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-color);
 
   .el-pager li {
     border-radius: 4px;
@@ -448,7 +456,7 @@ onMounted(() => {
     }
 
     &:hover:not(.is-active):not(.disabled) {
-      background: #f5f7fa;
+      background: var(--bg-secondary);
     }
   }
 }
@@ -458,21 +466,21 @@ onMounted(() => {
 // ============================================
 :deep(.el-form-item__label) {
   font-weight: 500;
-  color: var(--el-text-color-regular);
+  color: var(--text-regular);
 }
 
 :deep(.el-input__wrapper),
 :deep(.el-textarea__wrapper) {
   border-radius: 6px;
-  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  box-shadow: 0 0 0 1px var(--border-color) inset;
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 0 0 1px #c0c4cc inset;
+    box-shadow: 0 0 0 1px var(--el-border-color-light) inset;
   }
 
   &.is-focus {
-    box-shadow: 0 0 0 1px #409eff inset;
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset;
   }
 }
 
@@ -525,11 +533,11 @@ onMounted(() => {
 
     &.role-btn {
       background: rgba(144, 147, 153, 0.1);
-      color: #606266;
+      color: var(--text-secondary);
       border: 1px solid rgba(144, 147, 153, 0.3);
 
       &:hover {
-        background: #606266;
+        background: var(--text-secondary);
         color: #fff;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(96, 98, 102, 0.35);

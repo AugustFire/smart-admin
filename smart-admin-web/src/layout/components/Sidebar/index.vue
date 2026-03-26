@@ -162,12 +162,17 @@ const sidebarActiveTextColor = 'var(--sidebar-active-text-color)'
     align-items: center;
     justify-content: flex-start;
     position: relative;
-    overflow: hidden;
 
     // 图标和文字容器
     > .el-icon {
       flex-shrink: 0;
       margin-right: 10px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
     }
 
     // 文字部分

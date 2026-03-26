@@ -414,17 +414,6 @@ html[data-theme='dark'] .el-table {
   }
 }
 
-.el-sub-menu__title {
-  border-radius: 8px;
-  margin: 4px 8px;
-  width: calc(100% - 16px);
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: var(--sidebar-hover-bg-color);
-  }
-}
-
 /* 标签页样式优化 */
 .el-tabs__item {
   border-radius: 4px;

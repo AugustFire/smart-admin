@@ -209,9 +209,21 @@ onUnmounted(() => {
 .tags-view-container {
   height: var(--tags-height);
   width: 100%;
-  background: linear-gradient(90deg, var(--tags-bg-color) 0%, rgba(248, 250, 252, 0.5) 100%);
+  background: linear-gradient(180deg, var(--tags-bg-color) 0%, #f8fafc 100%);
   border-bottom: 1px solid var(--tags-border-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+  position: relative;
+
+  // 顶部光效
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(254, 64, 102, 0.1) 50%, transparent 100%);
+  }
 
   :deep(.el-scrollbar) {
     height: 100%;
@@ -240,7 +252,7 @@ onUnmounted(() => {
     .tags-view-inner {
       display: flex;
       align-items: stretch;
-      gap: 2px;
+      gap: 0;
       height: 100%;
       width: 100%;
       padding: 8px 0;
@@ -257,53 +269,98 @@ onUnmounted(() => {
       min-width: 90px;
       max-width: 130px;
       line-height: 1;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-regular);
       background: var(--bg-secondary);
       padding: 0 14px;
       font-size: 13px;
-      border-radius: 4px;
-      transition: all 0.2s ease;
+      border-radius: 6px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       flex-shrink: 0;
 
+      // 选中指示器（底部横条）
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: var(--el-color-primary);
+        border-radius: 3px 3px 0 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-50%);
+      }
+
       &:hover {
         color: var(--el-color-primary);
         background: var(--el-color-primary-light-9);
+        border-color: var(--el-color-primary-light-5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(254, 64, 102, 0.15);
+
+        .close-icon {
+          opacity: 1;
+          transform: scale(1) rotate(0deg);
+        }
+      }
+
+      &:active {
+        transform: translateY(0) scale(0.98);
+        box-shadow: 0 2px 6px rgba(254, 64, 102, 0.1);
       }
 
       &.active {
         background: var(--el-color-primary);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(254, 64, 102, 0.3);
+        border-color: var(--el-color-primary);
         font-weight: 500;
+        transform: translateY(-1px);
+
+        &::before {
+          width: 100%;
+          background: rgba(255, 255, 255, 0.5);
+        }
+
+        &:hover {
+          background: var(--el-color-primary-light-3);
+          transform: translateY(-2px);
+        }
 
         .close-icon {
+          opacity: 1;
+          color: rgba(255, 255, 255, 0.9);
+
           &:hover {
             background-color: rgba(255, 255, 255, 0.25);
             color: #fff;
+            transform: scale(1.1) rotate(90deg);
           }
         }
       }
 
       .close-icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-left: 4px;
+        margin-left: 6px;
         border-radius: 50%;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 11px;
         flex-shrink: 0;
+        opacity: 0.6;
+        transform: scale(0.9);
 
         &:hover {
-          background-color: rgba(0, 0, 0, 0.1);
+          background-color: rgba(0, 0, 0, 0.08);
           color: var(--text-primary);
+          transform: scale(1.1) rotate(90deg);
         }
       }
     }
@@ -353,18 +410,31 @@ onUnmounted(() => {
 // 暗黑主题
 html[data-theme='dark'] {
   .tags-view-container {
-    background: var(--tags-bg-color);
+    background: linear-gradient(180deg, var(--tags-bg-color) 0%, #1e293b 100%);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &::before {
+      background: linear-gradient(90deg, transparent 0%, rgba(254, 64, 102, 0.15) 50%, transparent 100%);
+    }
 
     .tags-view-wrapper {
       .tags-view-item {
-        background: var(--bg-secondary);
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.05);
 
         &:hover {
-          background: var(--bg-tertiary);
+          background: rgba(254, 64, 102, 0.15);
+          border-color: rgba(254, 64, 102, 0.3);
+          box-shadow: 0 4px 12px rgba(254, 64, 102, 0.2);
         }
 
         &.active {
-          box-shadow: 0 2px 8px rgba(254, 64, 102, 0.4);
+          background: var(--el-color-primary);
+          border-color: var(--el-color-primary);
+
+          &:hover {
+            background: var(--el-color-primary-light-3);
+          }
         }
       }
     }

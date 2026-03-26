@@ -226,23 +226,24 @@ onUnmounted(() => {
       height: 100%;
       min-width: 100%;
       display: flex;
-      align-items: center;
+      align-items: stretch;
     }
   }
 
   .tags-view-wrapper {
     padding: 0 16px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     height: 100%;
     white-space: nowrap;
 
     .tags-view-inner {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       gap: 2px;
       height: 100%;
       width: 100%;
+      padding: 8px 0;
     }
 
     .tags-view-item {
@@ -251,10 +252,11 @@ onUnmounted(() => {
       justify-content: center;
       position: relative;
       cursor: pointer;
-      height: 30px;
+      height: 100%;
+      min-height: 34px;
       min-width: 90px;
       max-width: 130px;
-      line-height: 30px;
+      line-height: 1;
       border: none;
       color: var(--text-regular);
       background: var(--bg-secondary);

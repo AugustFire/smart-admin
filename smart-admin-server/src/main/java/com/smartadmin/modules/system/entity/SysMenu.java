@@ -3,7 +3,6 @@ package com.smartadmin.modules.system.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +12,7 @@ import java.util.List;
  */
 @Data
 @TableName("sys_menu")
-public class SysMenu implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class SysMenu {
 
     /** 菜单 ID */
     @TableId(type = IdType.AUTO)

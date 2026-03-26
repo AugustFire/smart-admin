@@ -6,7 +6,6 @@ interface AppState {
     withoutAnimation: boolean
   }
   device: 'desktop' | 'mobile'
-  theme: 'light' | 'dark'
 }
 
 export const useAppStore = defineStore('app', {
@@ -16,7 +15,6 @@ export const useAppStore = defineStore('app', {
       withoutAnimation: false,
     },
     device: 'desktop',
-    theme: 'light',
   }),
 
   getters: {
@@ -37,23 +35,11 @@ export const useAppStore = defineStore('app', {
     setDevice(device: 'desktop' | 'mobile') {
       this.device = device
     },
-
-    setTheme(theme: 'light' | 'dark') {
-      this.theme = theme
-      document.documentElement.setAttribute('data-theme', theme)
-    },
-
-    // 初始化主题
-    initTheme() {
-      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
-      const theme = savedTheme || 'light'
-      this.setTheme(theme)
-    },
   },
 
   persist: {
     key: 'app-store',
     storage: localStorage,
-    paths: ['sidebar.opened', 'theme'],
+    paths: ['sidebar.opened'],
   },
 })

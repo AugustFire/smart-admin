@@ -5,16 +5,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 通用分页请求基类
  */
 @Data
 @Schema(description = "分页请求")
-public class PageReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class PageReq {
 
     @Min(value = 1, message = "页码不能小于 1")
     @Schema(description = "页码", example = "1")

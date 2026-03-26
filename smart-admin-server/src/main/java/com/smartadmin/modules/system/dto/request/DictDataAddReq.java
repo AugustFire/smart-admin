@@ -4,16 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 新增字典数据请求
  */
 @Data
 @Schema(description = "新增字典数据请求")
-public class DictDataAddReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class DictDataAddReq {
 
     @NotBlank(message = "字典类型不能为空")
     @Schema(description = "字典类型", example = "sys_user_sex")

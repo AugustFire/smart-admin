@@ -5,17 +5,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
-
 /**
  * 接口分页查询请求
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "接口分页查询请求")
-public class ApiPageQueryReq extends PageReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class ApiPageQueryReq extends PageReq {
 
     @Schema(description = "接口路径")
     private String path;

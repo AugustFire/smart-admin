@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,9 +11,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "分页响应")
-public class PageResp<T> implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class PageResp<T> {
 
     @Schema(description = "数据列表")
     private List<T> list;

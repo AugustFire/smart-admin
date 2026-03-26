@@ -231,7 +231,7 @@ onUnmounted(() => {
   }
 
   .tags-view-wrapper {
-    padding: 0 12px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     height: 100%;
@@ -240,7 +240,7 @@ onUnmounted(() => {
     .tags-view-inner {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 2px;
       height: 100%;
       width: 100%;
     }
@@ -251,36 +251,32 @@ onUnmounted(() => {
       justify-content: center;
       position: relative;
       cursor: pointer;
-      height: 32px;
-      min-width: 100px;
-      max-width: 140px;
-      line-height: 32px;
-      border: 1px solid var(--border-color);
+      height: 30px;
+      min-width: 90px;
+      max-width: 130px;
+      line-height: 30px;
+      border: none;
       color: var(--text-regular);
-      background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-      padding: 0 12px;
+      background: var(--bg-secondary);
+      padding: 0 14px;
       font-size: 13px;
-      border-radius: 6px;
-      transition: all 0.25s ease;
+      border-radius: 4px;
+      transition: all 0.2s ease;
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       flex-shrink: 0;
 
       &:hover {
-        border-color: var(--el-color-primary);
         color: var(--el-color-primary);
-        background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, #fff 100%);
-        transform: translateY(-1px);
+        background: var(--el-color-primary-light-9);
       }
 
       &.active {
-        background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
+        background: var(--el-color-primary);
         color: #fff;
-        border-color: transparent;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 8px rgba(254, 64, 102, 0.3);
         font-weight: 500;
 
         .close-icon {
@@ -292,19 +288,19 @@ onUnmounted(() => {
       }
 
       .close-icon {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-left: 6px;
+        margin-left: 4px;
         border-radius: 50%;
         transition: all 0.2s ease;
-        font-size: 12px;
+        font-size: 11px;
         flex-shrink: 0;
 
         &:hover {
-          background-color: rgba(0, 0, 0, 0.08);
+          background-color: rgba(0, 0, 0, 0.1);
           color: var(--text-primary);
         }
       }
@@ -355,14 +351,18 @@ onUnmounted(() => {
 // 暗黑主题
 html[data-theme='dark'] {
   .tags-view-container {
-    background: linear-gradient(90deg, var(--tags-bg-color) 0%, rgba(30, 41, 59, 0.5) 100%);
+    background: var(--tags-bg-color);
 
     .tags-view-wrapper {
       .tags-view-item {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        background: var(--bg-secondary);
 
         &:hover {
-          background: linear-gradient(135deg, #334155 0%, #475569 100%);
+          background: var(--bg-tertiary);
+        }
+
+        &.active {
+          box-shadow: 0 2px 8px rgba(254, 64, 102, 0.4);
         }
       }
     }

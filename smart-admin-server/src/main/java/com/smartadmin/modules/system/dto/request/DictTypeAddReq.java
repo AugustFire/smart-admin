@@ -5,16 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 新增字典类型请求
  */
 @Data
 @Schema(description = "新增字典类型请求")
-public class DictTypeAddReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class DictTypeAddReq {
 
     @NotBlank(message = "字典名称不能为空")
     @Size(max = 30, message = "字典名称长度不能超过 30 个字符")

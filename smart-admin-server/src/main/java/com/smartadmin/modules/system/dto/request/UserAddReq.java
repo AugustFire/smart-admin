@@ -1,12 +1,10 @@
 package com.smartadmin.modules.system.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -14,9 +12,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "新增用户请求")
-public class UserAddReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserAddReq {
 
     @NotBlank(message = "用户名不能为空")
     @Size(min = 3, max = 20, message = "用户名长度 3-20 位")

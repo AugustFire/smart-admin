@@ -5,8 +5,8 @@
       <breadcrumb />
     </div>
     <div class="right-menu">
-      <div class="theme-switch" @click="toggleTheme">
-        <el-icon class="theme-icon"><component :is="isDark ? 'Sunny' : 'Moon'" /></el-icon>
+      <div class="theme-switch" ref="themeSwitchRef" @click="toggleTheme">
+        <el-icon class="theme-icon"><component :is="themeStore.isDark ? 'Sunny' : 'Moon'" /></el-icon>
       </div>
       <el-popover placement="bottom" :width="280" trigger="click">
         <template #reference>
@@ -71,20 +71,25 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
 
+const themeSwitchRef = ref<HTMLElement>()
+
 const sidebar = computed(() => appStore.sidebar)
 const nickname = computed(() => userStore.nickname)
 const avatar = computed(() => userStore.avatar)
-
-const isDark = ref(appStore.theme === 'dark')
 
 function toggleSidebar() {
   appStore.toggleSidebar()
 }
 
 function toggleTheme() {
-  isDark.value = !isDark.value
-  const theme = isDark.value ? 'dark' : 'light'
-  appStore.setTheme(theme)
+  // 获取按钮位置
+  const rect = themeSwitchRef.value?.getBoundingClientRect()
+  if (rect) {
+    const x = rect.left + rect.width / 2
+    const y = rect.top + rect.height / 2
+    themeStore.setTransitionCenter(x, y)
+  }
+  themeStore.toggleThemeWithAnimation()
 }
 
 function handleProfile() {

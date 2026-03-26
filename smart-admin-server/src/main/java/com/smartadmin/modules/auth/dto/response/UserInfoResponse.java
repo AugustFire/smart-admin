@@ -4,7 +4,6 @@ import com.smartadmin.modules.system.dto.response.RoleInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,9 +11,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "用户信息响应")
-public class UserInfoResponse implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserInfoResponse {
 
     @Schema(description = "用户 ID")
     private Long userId;

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -13,9 +12,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "给角色分配菜单请求")
-public class RoleAssignMenuReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class RoleAssignMenuReq {
 
     @NotNull(message = "角色 ID 不能为空")
     @Schema(description = "角色 ID", example = "1")

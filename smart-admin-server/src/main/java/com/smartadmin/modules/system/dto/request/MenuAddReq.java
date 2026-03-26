@@ -5,16 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 新增菜单请求
  */
 @Data
 @Schema(description = "新增菜单请求")
-public class MenuAddReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class MenuAddReq {
 
     @Schema(description = "父菜单 ID 0=顶级", example = "0")
     private Long parentId;

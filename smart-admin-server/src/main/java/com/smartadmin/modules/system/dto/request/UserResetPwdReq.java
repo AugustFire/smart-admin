@@ -6,16 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 重置用户密码请求
  */
 @Data
 @Schema(description = "重置用户密码请求")
-public class UserResetPwdReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserResetPwdReq {
 
     @NotNull(message = "用户 ID 不能为空")
     @Schema(description = "用户 ID", example = "1")

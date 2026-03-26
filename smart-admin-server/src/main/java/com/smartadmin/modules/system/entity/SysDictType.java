@@ -3,7 +3,6 @@ package com.smartadmin.modules.system.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -11,9 +10,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("sys_dict_type")
-public class SysDictType implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class SysDictType {
 
     /** 字典主键 */
     @TableId(type = IdType.AUTO)

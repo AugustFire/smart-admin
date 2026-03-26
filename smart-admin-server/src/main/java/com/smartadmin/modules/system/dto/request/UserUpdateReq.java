@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -14,9 +13,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "更新用户请求")
-public class UserUpdateReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserUpdateReq {
 
     @NotNull(message = "用户 ID 不能为空")
     @Schema(description = "用户 ID", example = "1")

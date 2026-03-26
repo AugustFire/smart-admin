@@ -6,16 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 更新角色请求
  */
 @Data
 @Schema(description = "更新角色请求")
-public class RoleUpdateReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class RoleUpdateReq {
 
     @NotNull(message = "角色 ID 不能为空")
     @Schema(description = "角色 ID", example = "1")

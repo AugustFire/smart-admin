@@ -5,17 +5,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
-
 /**
  * 角色分页查询请求
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "角色分页查询请求")
-public class RolePageQueryReq extends PageReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class RolePageQueryReq extends PageReq {
 
     @Schema(description = "角色名称（模糊）", example = "管理员")
     private String name;

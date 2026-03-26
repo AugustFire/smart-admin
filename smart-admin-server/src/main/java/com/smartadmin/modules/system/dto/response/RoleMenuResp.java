@@ -3,7 +3,6 @@ package com.smartadmin.modules.system.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -11,9 +10,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "角色菜单响应")
-public class RoleMenuResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class RoleMenuResp {
 
     @Schema(description = "角色 ID")
     private Long roleId;

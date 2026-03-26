@@ -12,7 +12,7 @@
       <div class="brand-content">
         <h1 class="brand-title">Smart Admin</h1>
         <p class="brand-desc">
-          一站式企业级管理后台解决方案，助力团队高效协作，提升工作效率。
+          {{ t('brandDesc') }}
         </p>
       </div>
 
@@ -24,7 +24,20 @@
     <!-- 右侧登录卡片 -->
     <div class="right-section">
       <div class="login-card">
-        <h2 class="card-title">登录账户</h2>
+        <!-- 语言切换 -->
+        <div class="lang-switch">
+          <span
+            :class="{ active: lang === 'zh' }"
+            @click="lang = 'zh'"
+          >中文</span>
+          <span class="divider">/</span>
+          <span
+            :class="{ active: lang === 'en' }"
+            @click="lang = 'en'"
+          >EN</span>
+        </div>
+
+        <h2 class="card-title">{{ t('loginTitle') }}</h2>
 
         <!-- 错误提示 -->
         <transition name="fade">
@@ -40,23 +53,23 @@
           class="login-form"
         >
           <div class="form-item">
-            <label>用户名</label>
+            <label>{{ t('username') }}</label>
             <el-form-item prop="username">
               <el-input
                 v-model="loginForm.username"
-                placeholder="请输入用户名"
+                :placeholder="t('usernamePlaceholder')"
                 :disabled="loading"
               />
             </el-form-item>
           </div>
 
           <div class="form-item">
-            <label>密码</label>
+            <label>{{ t('password') }}</label>
             <el-form-item prop="password">
               <el-input
                 v-model="loginForm.password"
                 type="password"
-                placeholder="请输入密码"
+                :placeholder="t('passwordPlaceholder')"
                 show-password
                 :disabled="loading"
                 @keyup.enter="handleLogin"
@@ -70,12 +83,12 @@
             class="submit-btn"
             @click="handleLogin"
           >
-            {{ loading ? '登录中...' : '登录' }}
+            {{ loading ? t('loggingIn') : t('login') }}
           </el-button>
         </el-form>
 
         <div class="demo-tip">
-          <span class="label">演示账号：</span>
+          <span class="label">{{ t('demoAccount') }}</span>
           <span class="value">admin / admin123</span>
         </div>
       </div>
@@ -84,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -100,18 +113,60 @@ const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
 const errorMessage = ref('')
 
+// 语言切换
+const lang = ref<'zh' | 'en'>('zh')
+
+const i18n = {
+  zh: {
+    brandDesc: '一站式企业级管理后台解决方案，助力团队高效协作，提升工作效率。',
+    loginTitle: '登录账户',
+    username: '用户名',
+    usernamePlaceholder: '请输入用户名',
+    password: '密码',
+    passwordPlaceholder: '请输入密码',
+    login: '登录',
+    loggingIn: '登录中...',
+    demoAccount: '演示账号：',
+    usernameRequired: '请输入用户名',
+    passwordRequired: '请输入密码',
+    passwordMin: '密码长度至少 6 位',
+    loginSuccess: '登录成功',
+    loginFailed: '登录失败，请检查用户名和密码',
+  },
+  en: {
+    brandDesc: 'Enterprise management platform for efficient team collaboration.',
+    loginTitle: 'Sign In',
+    username: 'Username',
+    usernamePlaceholder: 'Enter username',
+    password: 'Password',
+    passwordPlaceholder: 'Enter password',
+    login: 'Sign In',
+    loggingIn: 'Signing in...',
+    demoAccount: 'Demo: ',
+    usernameRequired: 'Username is required',
+    passwordRequired: 'Password is required',
+    passwordMin: 'Password must be at least 6 characters',
+    loginSuccess: 'Login successful',
+    loginFailed: 'Login failed, please check your credentials',
+  },
+}
+
+const t = (key: string) => {
+  return i18n[lang.value][key as keyof typeof i18n['zh']] || key
+}
+
 const loginForm = reactive({
   username: 'admin',
   password: 'admin123',
 })
 
-const loginRules: FormRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+const loginRules = computed<FormRules>(() => ({
+  username: [{ required: true, message: t('usernameRequired'), trigger: 'blur' }],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度至少 6 位', trigger: 'blur' },
+    { required: true, message: t('passwordRequired'), trigger: 'blur' },
+    { min: 6, message: t('passwordMin'), trigger: 'blur' },
   ],
-}
+}))
 
 function handleLogin() {
   if (!loginFormRef.value) return
@@ -128,11 +183,11 @@ function handleLogin() {
       const { data: menus } = await getUserMenusApi()
       const dynamicRoutes = permissionStore.generateRoutes(menus || [])
       dynamicRoutes.forEach(route => router.addRoute('layout', route))
-      ElMessage({ type: 'success', message: '登录成功', duration: 1500 })
+      ElMessage({ type: 'success', message: t('loginSuccess'), duration: 1500 })
       router.push('/')
     } catch (error: any) {
       loading.value = false
-      errorMessage.value = error?.message || '登录失败，请检查用户名和密码'
+      errorMessage.value = error?.message || t('loginFailed')
     }
   })
 }
@@ -222,6 +277,35 @@ function handleLogin() {
       border-radius: 24px;
       padding: 48px 40px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      position: relative;
+
+      .lang-switch {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        font-size: 13px;
+        color: #999;
+
+        span {
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            color: #666;
+          }
+
+          &.active {
+            color: var(--el-color-primary);
+            font-weight: 600;
+          }
+        }
+
+        .divider {
+          margin: 0 6px;
+          cursor: default;
+          color: #ddd;
+        }
+      }
 
       .card-title {
         font-size: 28px;

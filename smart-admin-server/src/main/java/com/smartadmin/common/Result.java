@@ -3,16 +3,12 @@ package com.smartadmin.common;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 统一响应结果封装
  */
 @Data
 @Schema(description = "统一响应结果")
-public class Result<T> implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Result<T> {
 
     /** 状态码 */
     @Schema(description = "状态码")

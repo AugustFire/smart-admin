@@ -4,17 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 登录响应
  */
 @Data
 @Builder
 @Schema(description = "登录响应")
-public class LoginResponse implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class LoginResponse {
 
     @Schema(description = "访问令牌")
     private String token;

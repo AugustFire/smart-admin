@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -13,9 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @Schema(description = "操作日志响应")
-public class OperLogResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class OperLogResp {
 
     @Schema(description = "日志 ID")
     private Long operId;

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,9 +11,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "新增接口请求")
-public class ApiAddReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class ApiAddReq {
 
     @NotBlank(message = "接口路径不能为空")
     @Schema(description = "接口路径", example = "/api/user/list")

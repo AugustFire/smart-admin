@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,9 +15,7 @@ import java.util.List;
 @Builder
 @Schema(description = "菜单信息响应")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class MenuResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class MenuResp {
 
     @Schema(description = "菜单 ID")
     private Long id;

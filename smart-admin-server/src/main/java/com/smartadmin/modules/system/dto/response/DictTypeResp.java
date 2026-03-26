@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -13,9 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @Schema(description = "字典类型响应")
-public class DictTypeResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class DictTypeResp {
 
     @Schema(description = "字典 ID")
     private Long id;

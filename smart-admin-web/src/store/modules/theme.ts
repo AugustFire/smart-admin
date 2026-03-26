@@ -62,6 +62,15 @@ export const themeColors: ThemeColor[] = [
 
 export const useThemeStore = defineStore('theme', () => {
   const currentColor = ref<string>(localStorage.getItem('themeColor') || 'rose')
+  const isDark = ref(localStorage.getItem('theme') === 'dark')
+  const themeTransition = ref(false)
+  const transitionToDark = ref(false)
+  const transitionCenter = ref({ x: 0, y: 0 })
+
+  // 设置动画中心点
+  function setTransitionCenter(x: number, y: number) {
+    transitionCenter.value = { x, y }
+  }
 
   // 应用配色方案
   function applyColorScheme(color: ThemeColor) {
@@ -91,15 +100,51 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
+  // 切换主题（带动画）
+  async function toggleThemeWithAnimation() {
+    const willBeDark = !isDark.value
+    transitionToDark.value = willBeDark
+    themeTransition.value = true
+
+    if (willBeDark) {
+      // 浅色 → 深色：深色圆扩散，完成后切换主题
+      await new Promise(resolve => setTimeout(resolve, 700))
+
+      isDark.value = true
+      document.documentElement.setAttribute('data-theme', 'dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      // 深色 → 浅色：先切换主题，深色圆收缩
+      isDark.value = false
+      document.documentElement.setAttribute('data-theme', 'light')
+      localStorage.setItem('theme', 'light')
+
+      await new Promise(resolve => setTimeout(resolve, 700))
+    }
+
+    themeTransition.value = false
+  }
+
   // 初始化时应用保存的配色
   const savedColor = themeColors.find(c => c.name === currentColor.value)
   if (savedColor) {
     applyColorScheme(savedColor)
   }
 
+  // 初始化时应用保存的主题
+  if (isDark.value) {
+    document.documentElement.setAttribute('data-theme', 'dark')
+  }
+
   return {
     currentColor,
+    isDark,
+    themeTransition,
+    transitionToDark,
+    transitionCenter,
+    setTransitionCenter,
     setColorScheme,
+    toggleThemeWithAnimation,
     themeColors,
   }
 })

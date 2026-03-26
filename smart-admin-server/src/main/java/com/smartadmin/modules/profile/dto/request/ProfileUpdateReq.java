@@ -4,16 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 更新个人信息请求
  */
 @Data
 @Schema(description = "更新个人信息请求")
-public class ProfileUpdateReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class ProfileUpdateReq {
 
     @Schema(description = "用户昵称", example = "管理员")
     private String nickname;

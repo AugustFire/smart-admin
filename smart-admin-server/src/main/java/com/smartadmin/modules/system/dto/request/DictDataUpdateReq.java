@@ -5,16 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 更新字典数据请求
  */
 @Data
 @Schema(description = "更新字典数据请求")
-public class DictDataUpdateReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class DictDataUpdateReq {
 
     @NotNull(message = "字典 ID 不能为空")
     @Schema(description = "字典 ID", example = "1")

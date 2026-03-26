@@ -4,17 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 用户信息响应
  */
 @Data
 @Builder
 @Schema(description = "用户信息响应")
-public class ProfileResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class ProfileResp {
 
     @Schema(description = "用户 ID")
     private Long userId;

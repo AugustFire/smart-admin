@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,9 +14,7 @@ import java.util.List;
 @Data
 @Builder(toBuilder = true)
 @Schema(description = "用户信息响应")
-public class UserResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserResp {
 
     @Schema(description = "用户 ID")
     private Long userId;

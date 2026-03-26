@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -13,9 +12,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "更新接口请求")
-public class ApiUpdateReq implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class ApiUpdateReq {
 
     @NotNull(message = "接口 ID 不能为空")
     @Schema(description = "接口 ID", example = "1")

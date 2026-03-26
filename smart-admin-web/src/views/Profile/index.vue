@@ -248,7 +248,7 @@ onMounted(() => {
 .profile-container {
   min-height: 100%;
   background-color: var(--app-main-bg-color);
-  padding: 0;
+  padding: 24px;
 
   // 顶部用户信息卡片
   .profile-header-card {

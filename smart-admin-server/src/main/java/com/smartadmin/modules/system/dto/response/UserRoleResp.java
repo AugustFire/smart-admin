@@ -3,16 +3,14 @@ package com.smartadmin.modules.system.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.util.List;
 
 /**
  * 用户角色响应（用于给用户分配角色时展示）
  */
 @Data
 @Schema(description = "用户角色响应")
-public class UserRoleResp implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class UserRoleResp {
 
     @Schema(description = "用户 ID")
     private Long userId;

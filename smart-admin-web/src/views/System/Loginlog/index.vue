@@ -20,6 +20,10 @@
             <el-icon><Refresh /></el-icon>
             重置
           </el-button>
+          <el-button v-permission="['loginlog:clear']" type="danger" plain @click="handleClear">
+            <el-icon><Delete /></el-icon>
+            清空
+          </el-button>
         </el-form-item>
       </el-form>
 
@@ -56,7 +60,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getLoginLogPageApi } from '@/api/log'
+import { getLoginLogPageApi, clearLoginLogApi } from '@/api/log'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -82,6 +87,19 @@ function resetQuery() {
   queryParams.username = ''
   queryParams.loginStatus = null
   handleQuery()
+}
+
+function handleClear() {
+  ElMessageBox.confirm('确定要清空所有登录日志吗？此操作不可恢复！', '系统提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    clearLoginLogApi().then(() => {
+      ElMessage.success('清空成功')
+      handleQuery()
+    })
+  })
 }
 
 onMounted(() => {

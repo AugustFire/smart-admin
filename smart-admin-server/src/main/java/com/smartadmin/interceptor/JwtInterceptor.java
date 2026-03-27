@@ -9,14 +9,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.util.List;
 
 /**
  * JWT 拦截器
  * 验证 Token 有效性，将用户信息存入 UserContext
+ *
+ * 白名单配置在 WebConfig.addInterceptors() 中通过 excludePathPatterns() 配置
  */
 @Slf4j
 @Component
@@ -26,31 +25,9 @@ public class JwtInterceptor implements HandlerInterceptor {
     private final JwtUtils jwtUtils;
     private final JwtProperties jwtProperties;
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    /**
-     * 白名单路径（不需要 Token）
-     */
-    private static final List<String> WHITE_LIST = List.of(
-            "/auth/login",
-            "/auth/logout",
-            "/doc.html",
-            "/webjars/**",
-            "/v3/api-docs/**",
-            "/favicon.ico",
-            "/error"
-    );
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String requestUri = request.getRequestURI();
-
-        // 检查是否在白名单中
-        for (String pattern : WHITE_LIST) {
-            if (pathMatcher.match(pattern, requestUri)) {
-                return true;
-            }
-        }
 
         // 获取 Token
         String token = resolveToken(request);

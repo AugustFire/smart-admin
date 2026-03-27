@@ -46,6 +46,10 @@ public class ServletUtils extends JakartaServletUtil {
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
+        // 将 IPv6 localhost 转换为 IPv4
+        if ("0:0:0:0:0:0:0:1".equals(ip)) {
+            ip = "127.0.0.1";
+        }
         return ip;
     }
 }

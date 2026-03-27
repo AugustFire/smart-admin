@@ -111,9 +111,25 @@
         :props="{ children: 'children', label: 'name' }"
         show-checkbox
         node-key="id"
+        check-strictly
         :default-checked-keys="selectedMenuIds"
         class="menu-tree"
-      />
+        @check="handleCheck"
+      >
+        <template #default="{ data }">
+          <span class="tree-node">
+            <span>{{ data.name }}</span>
+            <el-tag
+              :type="menuTypeMap[data.type]?.type"
+              size="small"
+              effect="light"
+              class="node-type-tag"
+            >
+              {{ menuTypeMap[data.type]?.label || '未知' }}
+            </el-tag>
+          </span>
+        </template>
+      </el-tree>
       <template #footer>
         <el-button @click="permissionVisible = false">取消</el-button>
         <el-button type="primary" @click="submitPermission">确定</el-button>
@@ -127,7 +143,6 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
   getRolePageApi,
-  getRoleListApi,
   addRoleApi,
   updateRoleApi,
   deleteRoleApi,
@@ -139,7 +154,16 @@ import { getMenuTreeApi } from '@/api/menu'
 interface MenuNode {
   id: number
   name: string
+  type: number  // 1=目录 2=菜单 3=按钮
+  parentId?: number
   children?: MenuNode[]
+}
+
+// 菜单类型映射（与菜单管理页面保持一致）
+const menuTypeMap: Record<number, { label: string; type: '' | 'success' | 'warning' }> = {
+  1: { label: '目录', type: '' },
+  2: { label: '菜单', type: 'success' },
+  3: { label: '按钮', type: 'warning' },
 }
 
 const loading = ref(false)
@@ -240,44 +264,70 @@ function handleAssignPermission(row: any) {
   getMenuTreeApi().then(({ data }) => {
     menuTree.value = data as MenuNode[]
 
-    // 获取已选菜单后，过滤出叶子节点
+    // 获取已选菜单
     getRoleMenuIdsApi(row.roleId).then(({ data }) => {
-      // 只勾选叶子节点，避免父节点勾选导致子节点全选
-      const leafIds = filterLeafIds(data, menuTree.value)
-      selectedMenuIds.value = leafIds
+      selectedMenuIds.value = data || []
     })
   })
 }
 
-// 过滤出叶子节点 ID
-function filterLeafIds(ids: number[], tree: MenuNode[]): number[] {
-  const allNodeIds = new Set<number>()
-  const parentNodeIds = new Set<number>()
+// 获取所有父节点ID
+function getParentIds(tree: MenuNode[], targetId: number, parentIds: number[] = []): number[] {
+  for (const node of tree) {
+    if (node.id === targetId) {
+      return parentIds
+    }
+    if (node.children && node.children.length > 0) {
+      const result = getParentIds(node.children, targetId, [...parentIds, node.id])
+      if (result.length > 0) {
+        return result
+      }
+    }
+  }
+  return []
+}
 
-  // 遍历树，收集所有节点和父节点
-  function traverse(nodes: MenuNode[]) {
-    nodes.forEach(node => {
-      allNodeIds.add(node.id)
-      if (node.children && node.children.length > 0) {
-        parentNodeIds.add(node.id)
-        traverse(node.children)
+// 获取所有子节点ID
+function getChildIds(node: MenuNode): number[] {
+  const ids: number[] = []
+  if (node.children && node.children.length > 0) {
+    for (const child of node.children) {
+      ids.push(child.id)
+      ids.push(...getChildIds(child))
+    }
+  }
+  return ids
+}
+
+// 处理勾选事件：勾选子节点时自动勾选父节点，取消父节点时自动取消子节点
+function handleCheck(data: MenuNode, checkedInfo: { checkedKeys: number[] }) {
+  const isChecked = checkedInfo.checkedKeys.includes(data.id)
+
+  if (isChecked) {
+    // 勾选子节点时，自动勾选所有父节点
+    const parentIds = getParentIds(menuTree.value, data.id)
+    parentIds.forEach(id => {
+      if (!checkedInfo.checkedKeys.includes(id)) {
+        menuTreeRef.value?.setChecked(id, true, false)
+      }
+    })
+  } else {
+    // 取消勾选父节点时，自动取消所有子节点
+    const childIds = getChildIds(data)
+    childIds.forEach(id => {
+      if (checkedInfo.checkedKeys.includes(id)) {
+        menuTreeRef.value?.setChecked(id, false, false)
       }
     })
   }
-  traverse(tree)
-
-  // 只返回存在于 ids 中且不是父节点的 ID
-  return ids.filter(id => allNodeIds.has(id) && !parentNodeIds.has(id))
 }
 
 function submitPermission() {
   if (!currentRoleId.value) return
 
   const checkedKeys = (menuTreeRef.value?.getCheckedKeys() || []) as number[]
-  const halfCheckedKeys = (menuTreeRef.value?.getHalfCheckedKeys() || []) as number[]
-  const menuIds = [...checkedKeys, ...halfCheckedKeys]
 
-  assignRoleMenusApi(currentRoleId.value, menuIds).then(() => {
+  assignRoleMenusApi(currentRoleId.value, checkedKeys).then(() => {
     ElMessage.success('权限分配成功')
     permissionVisible.value = false
   })
@@ -429,6 +479,22 @@ onMounted(() => {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 12px;
+
+  .tree-node {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    padding-right: 8px;
+
+    .node-type-tag {
+      margin-left: 8px;
+      font-size: 11px;
+      height: 20px;
+      line-height: 18px;
+      padding: 0 6px;
+    }
+  }
 
   :deep(.el-tree-node) {
     .el-tree-node__content {

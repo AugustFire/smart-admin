@@ -43,7 +43,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         "/auth/login",           // 登录接口
-                        "/auth/logout",          // 登出接口（可选，登出时 token 可能已无效）
                         "/doc.html",             // Knife4j 文档
                         "/webjars/**",           // Swagger 静态资源
                         "/v3/api-docs/**",       // OpenAPI 文档
@@ -55,7 +54,12 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(permissionInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/auth/login"
+                        "/auth/login",
+                        "/auth/logout",          // 登出只需要登录，不需要额外权限
+                        "/doc.html",             // Knife4j 文档
+                        "/webjars/**",           // Swagger 静态资源
+                        "/v3/api-docs/**",       // OpenAPI 文档
+                        "/favicon.ico"           // 图标
                 )
                 .order(2);
     }

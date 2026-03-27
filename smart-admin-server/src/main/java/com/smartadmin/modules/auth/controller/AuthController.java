@@ -5,8 +5,6 @@ import com.smartadmin.modules.auth.dto.request.LoginRequest;
 import com.smartadmin.modules.auth.dto.response.LoginResponse;
 import com.smartadmin.modules.auth.dto.response.UserInfoResponse;
 import com.smartadmin.common.Result;
-import com.smartadmin.common.annotation.OperLog;
-import com.smartadmin.common.enums.BusinessType;
 import com.smartadmin.modules.system.entity.SysMenu;
 import com.smartadmin.utils.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +32,6 @@ public class AuthController {
      * 登录
      */
     @PostMapping("/login")
-    @OperLog(title = "用户登录", businessType = BusinessType.LOGIN)
     @Operation(summary = "用户登录")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authBiz.login(request);
@@ -49,10 +46,10 @@ public class AuthController {
      * 登出
      */
     @PostMapping("/logout")
-    @OperLog(title = "用户登出", businessType = BusinessType.LOGOUT)
     @Operation(summary = "用户登出")
     public Result<Void> logout() {
         String username = UserContext.getUsername();
+        authBiz.logout(username);
         log.info("用户 {} 登出成功", username);
         return Result.success();
     }

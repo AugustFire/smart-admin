@@ -239,6 +239,7 @@ const nodeList = ref<NodeData[]>([])
 // 画布状态
 const canvasPanelRef = ref<HTMLElement>()
 const scale = ref(1)
+const canvasOffset = ref({ x: 0, y: 0 })  // 画布整体偏移
 
 // 动态计算画布尺寸
 const canvasWidth = computed(() => {
@@ -343,7 +344,7 @@ const edgeList = computed(() => {
 })
 
 const canvasStyle = computed(() => ({
-  transform: `scale(${scale.value})`,
+  transform: `scale(${scale.value}) translate(${canvasOffset.value.x}px, ${canvasOffset.value.y}px)`,
   transformOrigin: '0 0',
   width: canvasWidth.value + 'px',
   height: canvasHeight.value + 'px'
@@ -422,6 +423,7 @@ async function handleDatabaseChange(val: number | null) {
   currentDatabaseId.value = val
   nodeList.value = []
   scale.value = 1
+  canvasOffset.value = { x: 0, y: 0 }
 
   if (val) {
     const db = databaseList.value.find(d => d.id === val)
@@ -505,6 +507,7 @@ async function addAllTables() {
 
 function clearAll() {
   nodeList.value = []
+  canvasOffset.value = { x: 0, y: 0 }
 }
 
 // 路径计算 - 使用贝塞尔曲线实现平滑连接
@@ -634,6 +637,9 @@ function zoomOut() {
 function fitView() {
   if (nodeList.value.length === 0 || !canvasPanelRef.value) return
 
+  // 重置画布偏移
+  canvasOffset.value = { x: 0, y: 0 }
+
   // 计算所有节点的边界框
   let minX = Infinity, minY = Infinity
   let maxX = -Infinity, maxY = -Infinity
@@ -695,14 +701,12 @@ function handleCanvasMouseDown(e: MouseEvent) {
 
 function handleCanvasMouseMove(e: MouseEvent) {
   if (isPanning.value) {
-    // 移动所有节点
+    // 移动整个画布（使用 transform，SVG 和节点同步移动）
     const dx = (e.clientX - panStart.value.x) / scale.value
     const dy = (e.clientY - panStart.value.y) / scale.value
 
-    nodeList.value.forEach(node => {
-      node.x += dx
-      node.y += dy
-    })
+    canvasOffset.value.x += dx
+    canvasOffset.value.y += dy
 
     panStart.value = { x: e.clientX, y: e.clientY }
   } else if (draggingNodeId.value !== null) {
@@ -717,6 +721,32 @@ function handleCanvasMouseMove(e: MouseEvent) {
 }
 
 function handleCanvasMouseUp() {
+  if (isPanning.value) {
+    // 拖拽结束时，将偏移量应用到所有节点
+    if (canvasOffset.value.x !== 0 || canvasOffset.value.y !== 0) {
+      // 临时禁用 transition 避免跳跃动画
+      const canvasWrapper = document.querySelector('.canvas-wrapper')
+      const nodes = canvasWrapper?.querySelectorAll('.er-node')
+      nodes?.forEach(node => {
+        (node as HTMLElement).style.transition = 'none'
+      })
+
+      nodeList.value.forEach(node => {
+        node.x += canvasOffset.value.x
+        node.y += canvasOffset.value.y
+      })
+
+      // 强制刷新 DOM 后恢复 transition
+      requestAnimationFrame(() => {
+        nodes?.forEach(node => {
+          (node as HTMLElement).style.transition = ''
+        })
+      })
+
+      // 重置偏移量
+      canvasOffset.value = { x: 0, y: 0 }
+    }
+  }
   isPanning.value = false
   draggingNodeId.value = null
 }
@@ -802,6 +832,9 @@ function handleKeyDown(e: KeyboardEvent) {
 // 自动布局 - Sugiyama 层次布局算法改进版
 function autoLayout() {
   if (nodeList.value.length === 0) return
+
+  // 重置画布偏移
+  canvasOffset.value = { x: 0, y: 0 }
 
   const nodeMap = new Map(nodeList.value.map(n => [n.tableId, n]))
   const edges = relationList.value.filter(r =>

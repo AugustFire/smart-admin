@@ -17,13 +17,12 @@
         <el-col :span="12">
           <el-form-item label="数据类型" prop="dataType">
             <el-select v-model="form.dataType" placeholder="请选择" style="width: 100%;">
-              <el-option label="bigint" value="bigint" />
-              <el-option label="varchar" value="varchar" />
-              <el-option label="int" value="int" />
-              <el-option label="tinyint" value="tinyint" />
-              <el-option label="datetime" value="datetime" />
-              <el-option label="text" value="text" />
-              <el-option label="decimal" value="decimal" />
+              <el-option
+                v-for="type in dataTypeOptions"
+                :key="type.value"
+                :label="type.label"
+                :value="type.value"
+              />
             </el-select>
           </el-form-item>
         </el-col>
@@ -110,6 +109,7 @@ const props = defineProps<{
   modelValue: boolean
   data?: any
   tableId?: number | null
+  databaseType?: string
 }>()
 
 const emit = defineEmits<{
@@ -125,6 +125,85 @@ const visible = computed({
 const isEdit = computed(() => !!props.data)
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
+
+// 根据数据库类型获取数据类型选项
+const dataTypeOptions = computed(() => {
+  const type = props.databaseType || 'mysql'
+
+  // 通用类型
+  const commonTypes = [
+    { label: 'bigint', value: 'bigint' },
+    { label: 'varchar', value: 'varchar' },
+    { label: 'int / integer', value: 'int' },
+    { label: 'text', value: 'text' },
+    { label: 'decimal / numeric', value: 'decimal' },
+    { label: 'datetime / timestamp', value: 'datetime' },
+    { label: 'date', value: 'date' },
+    { label: 'time', value: 'time' },
+    { label: 'boolean', value: 'boolean' }
+  ]
+
+  // MySQL 特有
+  const mysqlTypes = [
+    { label: 'tinyint', value: 'tinyint' },
+    { label: 'smallint', value: 'smallint' },
+    { label: 'mediumint', value: 'mediumint' },
+    { label: 'float', value: 'float' },
+    { label: 'double', value: 'double' },
+    { label: 'json', value: 'json' },
+    { label: 'char', value: 'char' },
+    { label: 'tinytext', value: 'tinytext' },
+    { label: 'mediumtext', value: 'mediumtext' },
+    { label: 'longtext', value: 'longtext' },
+    { label: 'blob', value: 'blob' },
+    { label: 'year', value: 'year' }
+  ]
+
+  // SQL Server 特有
+  const sqlServerTypes = [
+    { label: 'nvarchar', value: 'nvarchar' },
+    { label: 'nchar', value: 'nchar' },
+    { label: 'ntext', value: 'ntext' },
+    { label: 'money', value: 'money' },
+    { label: 'smallmoney', value: 'smallmoney' },
+    { label: 'real', value: 'real' },
+    { label: 'smalldatetime', value: 'smalldatetime' },
+    { label: 'datetime2', value: 'datetime2' },
+    { label: 'datetimeoffset', value: 'datetimeoffset' },
+    { label: 'uniqueidentifier', value: 'uniqueidentifier' },
+    { label: 'varbinary', value: 'varbinary' },
+    { label: 'image', value: 'image' },
+    { label: 'xml', value: 'xml' }
+  ]
+
+  // PostgreSQL 特有
+  const postgresqlTypes = [
+    { label: 'serial', value: 'serial' },
+    { label: 'bigserial', value: 'bigserial' },
+    { label: 'smallint', value: 'smallint' },
+    { label: 'real', value: 'real' },
+    { label: 'double precision', value: 'double precision' },
+    { label: 'numeric', value: 'numeric' },
+    { label: 'character', value: 'character' },
+    { label: 'character varying', value: 'character varying' },
+    { label: 'timestamp', value: 'timestamp' },
+    { label: 'timestamptz', value: 'timestamptz' },
+    { label: 'interval', value: 'interval' },
+    { label: 'bytea', value: 'bytea' },
+    { label: 'uuid', value: 'uuid' },
+    { label: 'json', value: 'json' },
+    { label: 'jsonb', value: 'jsonb' },
+    { label: 'array', value: 'array' }
+  ]
+
+  if (type === 'sqlserver') {
+    return [...commonTypes, ...sqlServerTypes]
+  } else if (type === 'postgresql') {
+    return [...commonTypes, ...postgresqlTypes]
+  } else {
+    return [...commonTypes, ...mysqlTypes]
+  }
+})
 
 const form = ref({
   id: null as number | null,

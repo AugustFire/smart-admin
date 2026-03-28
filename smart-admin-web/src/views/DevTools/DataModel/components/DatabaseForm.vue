@@ -86,7 +86,8 @@ const form = ref({
 
 const rules: FormRules = {
   name: [{ required: true, message: '请输入数据库名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入数据库编码', trigger: 'blur' }]
+  code: [{ required: true, message: '请输入数据库编码', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择数据库类型', trigger: 'change' }]
 }
 
 watch(() => props.data, (val) => {

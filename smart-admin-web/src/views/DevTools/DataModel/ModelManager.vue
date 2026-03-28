@@ -43,12 +43,10 @@
                 @click="selectDatabase(db.id)"
               >
                 <el-icon class="db-icon"><Folder /></el-icon>
-                <el-tooltip :content="db.description || '暂无描述'" placement="right" :disabled="!db.description">
-                  <div class="db-info">
-                    <span class="db-name">{{ db.name }}</span>
-                    <span class="db-code">{{ db.code }}</span>
-                  </div>
-                </el-tooltip>
+                <div class="db-info">
+                  <span class="db-name">{{ db.name }}</span>
+                  <span class="db-code">{{ db.code }}</span>
+                </div>
                 <div class="db-actions">
                   <el-button link type="primary" size="small" @click.stop="editDatabase(db)">
                     <el-icon><Edit /></el-icon>
@@ -66,7 +64,7 @@
         <div class="table-panel">
           <div class="panel-header">
             <span>数据表列表</span>
-            <el-tag v-if="currentDatabaseName" type="info" size="small">{{ currentDatabaseName }}</el-tag>
+            <el-tag v-if="currentDatabaseName" type="info" size="small">{{ currentDatabaseName }} ({{ currentDatabaseType }})</el-tag>
           </div>
           <div class="panel-content">
             <div v-if="!currentDatabaseId" class="empty-tip">请先选择数据库</div>
@@ -166,32 +164,42 @@
           <div class="relation-toolbar">
             <el-button type="primary" :icon="Plus" @click="handleAddRelation">新增关系</el-button>
           </div>
-          <el-table :data="relationList" size="small" border stripe>
-            <el-table-column label="源表" min-width="140">
+          <el-table :data="relationList" size="small" border stripe style="width: 100%;">
+            <el-table-column label="源表" min-width="180" show-overflow-tooltip>
               <template #default="{ row }">
-                <div class="relation-cell">
-                  <el-tag size="small" type="info">{{ row.sourceTableName }}</el-tag>
-                  <span class="field-name">{{ row.sourceColumnName }}</span>
+                <div class="relation-cell-compact">
+                  <span class="table-name-with-code">
+                    {{ row.sourceTableName }}
+                    <span class="code-separator">/</span>
+                    <span class="code-part">{{ row.sourceTableCode }}</span>
+                  </span>
+                  <span class="relation-arrow">→</span>
+                  <span class="field-code">{{ row.sourceColumnCode }}</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="关系" width="80" align="center">
+            <el-table-column label="关系" width="65" align="center">
               <template #default="{ row }">
                 <el-tag :type="getRelationType(row.relationType)" size="small">
                   {{ getRelationLabel(row.relationType) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="目标表" min-width="140">
+            <el-table-column label="目标表" min-width="180" show-overflow-tooltip>
               <template #default="{ row }">
-                <div class="relation-cell">
-                  <el-tag size="small" type="info">{{ row.targetTableName }}</el-tag>
-                  <span class="field-name">{{ row.targetColumnName }}</span>
+                <div class="relation-cell-compact">
+                  <span class="table-name-with-code">
+                    {{ row.targetTableName }}
+                    <span class="code-separator">/</span>
+                    <span class="code-part">{{ row.targetTableCode }}</span>
+                  </span>
+                  <span class="relation-arrow">→</span>
+                  <span class="field-code">{{ row.targetColumnCode }}</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-            <el-table-column label="操作" width="120" align="center" fixed="right">
+            <el-table-column prop="description" label="描述" min-width="120" show-overflow-tooltip />
+            <el-table-column label="操作" width="100" align="center" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="editRelation(row)">编辑</el-button>
                 <el-button link type="danger" size="small" @click="deleteRelation(row)">删除</el-button>
@@ -205,7 +213,7 @@
     <!-- 表单弹窗 -->
     <database-form v-model="databaseFormVisible" :data="currentDatabase" @success="refreshDatabases" />
     <table-form v-model="tableFormVisible" :data="currentTable" :database-id="currentDatabaseId" :database-name="currentDatabaseName" @success="refreshTables" />
-    <column-form v-model="columnFormVisible" :data="currentColumn" :table-id="currentTableId" @success="refreshColumns" />
+    <column-form v-model="columnFormVisible" :data="currentColumn" :table-id="currentTableId" :database-type="currentDatabaseType" @success="refreshColumns" />
     <relation-form v-model="relationFormVisible" :data="currentRelation" :table-list="tableList" :database-id="currentDatabaseId" @success="refreshRelations" />
   </div>
 </template>
@@ -241,6 +249,7 @@ const tableColumnsMap = reactive({} as Record<number, any[]>)
 // 当前选中
 const currentDatabaseId = ref<number | null>(null)
 const currentDatabaseName = ref('')
+const currentDatabaseType = ref('mysql')
 const currentDatabase = ref<any>(null)
 const currentTable = ref<any>(null)
 const currentTableId = ref<number | null>(null)
@@ -311,6 +320,7 @@ function selectDatabase(id: number) {
   currentDatabaseId.value = id
   const db = databaseList.value.find(d => d.id === id)
   currentDatabaseName.value = db?.name || ''
+  currentDatabaseType.value = db?.type || 'mysql'
   refreshTables()
   refreshRelations()
 }
@@ -321,6 +331,7 @@ function handleDatabaseChange(val: number | null) {
   } else {
     currentDatabaseId.value = null
     currentDatabaseName.value = ''
+    currentDatabaseType.value = 'mysql'
     tableList.value = []
     relationList.value = []
     expandedTables.clear()
@@ -794,9 +805,75 @@ function getRelationType(type: string): 'success' | 'primary' | 'warning' | 'dan
   flex-direction: column;
   gap: 4px;
 
+  .table-code-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    background: var(--bg-tertiary);
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    width: fit-content;
+  }
+
   .field-name {
     font-size: 12px;
-    color: #909399;
+    color: var(--el-color-primary);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+}
+
+.relation-cell-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+
+  .table-name-with-code {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .code-separator {
+      color: var(--text-placeholder);
+      font-size: 12px;
+      font-weight: 400;
+      margin: 0 2px;
+    }
+
+    .code-part {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+      background: var(--bg-tertiary);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+  }
+
+  .relation-arrow {
+    color: var(--text-placeholder);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .field-code {
+    font-size: 12px;
+    color: var(--el-color-primary);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    background: var(--el-color-primary-light-9);
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
   }
 }
 </style>

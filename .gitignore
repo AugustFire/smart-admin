@@ -28,5 +28,4 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Claude
-.claude/
 /smart-admin-server/logs/

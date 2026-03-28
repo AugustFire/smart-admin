@@ -5,14 +5,19 @@
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="源表" prop="sourceTableId">
-            <el-cascader
-              v-model="sourceTableValue"
-              :options="treeData"
-              :props="{ value: 'id', label: 'name', children: 'children', emitPath: false }"
+            <el-select
+              v-model="form.sourceTableId"
               placeholder="选择表"
               style="width: 100%;"
               @change="handleSourceTableChange"
-            />
+            >
+              <el-option
+                v-for="table in filteredTableList"
+                :key="table.id"
+                :label="`${table.name}(${table.code})`"
+                :value="table.id"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -28,14 +33,19 @@
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="目标表" prop="targetTableId">
-            <el-cascader
-              v-model="targetTableValue"
-              :options="treeData"
-              :props="{ value: 'id', label: 'name', children: 'children', emitPath: false }"
+            <el-select
+              v-model="form.targetTableId"
               placeholder="选择表"
               style="width: 100%;"
               @change="handleTargetTableChange"
-            />
+            >
+              <el-option
+                v-for="table in filteredTableList"
+                :key="table.id"
+                :label="`${table.name}(${table.code})`"
+                :value="table.id"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -72,11 +82,12 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { addRelationApi, updateRelationApi, getTableTreeApi, getColumnListApi } from '@/api/datamodel'
+import { addRelationApi, updateRelationApi, getColumnListApi } from '@/api/datamodel'
 
 const props = defineProps<{
   modelValue: boolean
   data: any
+  tableList: any[]
   databaseId: number | null
 }>()
 
@@ -93,11 +104,13 @@ const visible = computed({
 const isEdit = computed(() => !!props.data)
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
-const treeData = ref<any[]>([])
 const sourceColumns = ref<any[]>([])
 const targetColumns = ref<any[]>([])
-const sourceTableValue = ref<number | null>(null)
-const targetTableValue = ref<number | null>(null)
+
+// 当前数据库的表列表
+const filteredTableList = computed(() => {
+  return props.tableList || []
+})
 
 const form = ref({
   id: null as number | null,
@@ -117,18 +130,9 @@ const rules: FormRules = {
   relationType: [{ required: true, message: '请选择关系类型', trigger: 'change' }]
 }
 
-watch(() => visible.value, async (val) => {
-  if (val) {
-    const { data } = await getTableTreeApi()
-    treeData.value = data || []
-  }
-})
-
 watch(() => props.data, (val) => {
   if (val) {
     form.value = { ...val }
-    sourceTableValue.value = val.sourceTableId
-    targetTableValue.value = val.targetTableId
     if (val.sourceTableId) loadColumns(val.sourceTableId, 'source')
     if (val.targetTableId) loadColumns(val.targetTableId, 'target')
   } else {
@@ -141,8 +145,6 @@ watch(() => props.data, (val) => {
       relationType: 'ONE_TO_MANY',
       description: ''
     }
-    sourceTableValue.value = null
-    targetTableValue.value = null
     sourceColumns.value = []
     targetColumns.value = []
   }

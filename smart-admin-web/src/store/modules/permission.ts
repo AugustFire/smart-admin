@@ -115,6 +115,7 @@ export const usePermissionStore = defineStore('permission', {
         'system/dict/index': () => import('@/views/System/Dict/index.vue'),
         'system/loginlog/index': () => import('@/views/System/Loginlog/index.vue'),
         'system/operlog/index': () => import('@/views/System/Operlog/index.vue'),
+        'devtools/datamodel/index': () => import('@/views/DevTools/DataModel/index.vue'),
       }
 
       return componentMap[path] || (() => import('@/views/Error/404.vue'))

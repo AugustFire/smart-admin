@@ -70,6 +70,11 @@ function isChildHidden(child: RouteItem) {
 }
 
 function hasOneShowingChild(children: RouteItem[] = [], parent: RouteItem) {
+  // 如果父菜单是目录类型(type=1)，总是显示为目录
+  if (parent.meta?.type === 1) {
+    return false
+  }
+
   const showingChildren = children.filter((item) => {
     // 只显示目录和菜单类型
     return !isChildHidden(item) && (item.meta?.type === 1 || item.meta?.type === 2)

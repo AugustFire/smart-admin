@@ -30,7 +30,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table v-loading="loading" :data="tableData" class="simple-table" stripe>
+      <el-table v-loading="loading" :data="tableData" class="simple-table" stripe height="calc(100vh - 280px)">
         <el-table-column prop="operId" label="ID" width="80" />
         <el-table-column prop="title" label="模块标题" width="150" />
         <el-table-column label="业务类型" width="100">

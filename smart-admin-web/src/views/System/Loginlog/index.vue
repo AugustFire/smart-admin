@@ -27,7 +27,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table v-loading="loading" :data="tableData" class="simple-table" stripe>
+      <el-table v-loading="loading" :data="tableData" class="simple-table" stripe height="calc(100vh - 280px)">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column label="登录状态" width="100">

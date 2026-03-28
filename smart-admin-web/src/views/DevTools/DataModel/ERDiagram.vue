@@ -1,5 +1,5 @@
 <template>
-  <div class="er-diagram">
+  <div class="er-diagram" ref="erDiagramRef">
     <!-- 顶部工具栏 -->
     <div class="toolbar">
       <div class="toolbar-left">
@@ -19,6 +19,10 @@
         </el-button-group>
       </div>
       <div class="toolbar-right">
+        <el-button-group>
+          <el-button @click="toggleFullscreen" :icon="isFullscreen ? Close : FullScreen" :title="isFullscreen ? '退出全屏' : '全屏'" />
+        </el-button-group>
+        <el-divider direction="vertical" />
         <el-tag type="info" v-if="currentDatabaseName">
           {{ currentDatabaseName }} - {{ nodeList.length }} 张表
         </el-tag>
@@ -47,6 +51,7 @@
               <el-checkbox :model-value="isTableSelected(table.id)" />
               <el-icon class="table-icon"><Grid /></el-icon>
               <span class="table-name">{{ table.name }}</span>
+              <span class="table-code">{{ table.code }}</span>
             </div>
           </div>
         </div>
@@ -225,6 +230,7 @@ const tableList = ref<any[]>([])
 const relationList = ref<any[]>([])
 const currentDatabaseId = ref<number | null>(null)
 const currentDatabaseName = ref('')
+const currentDatabaseType = ref('mysql')
 const searchKeyword = ref('')
 
 // 节点数据 - 使用数组保证响应式
@@ -269,16 +275,23 @@ const currentTable = ref<NodeData | null>(null)
 // 复制状态
 const copied = ref(false)
 
+// 全屏状态
+const isFullscreen = ref(false)
+const erDiagramRef = ref<HTMLElement>()
+
 onMounted(() => {
   loadDatabases()
   // 添加键盘快捷键监听
   document.addEventListener('keydown', handleKeyDown)
   document.addEventListener('click', handleDocumentClick)
+  // 监听全屏变化
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
   document.removeEventListener('click', handleDocumentClick)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
 })
 
 // 计算属性
@@ -346,9 +359,14 @@ const descriptionText = computed(() => {
   if (nodeList.value.length === 0) return ''
 
   const lines: string[] = []
+  const dbTypeLabel: Record<string, string> = {
+    'mysql': 'MySQL',
+    'sqlserver': 'SQL Server',
+    'postgresql': 'PostgreSQL'
+  }
 
-  // 数据库名称
-  lines.push(`【数据库】${currentDatabaseName.value}`)
+  // 数据库名称和类型
+  lines.push(`【数据库】${currentDatabaseName.value} (${dbTypeLabel[currentDatabaseType.value] || currentDatabaseType.value})`)
   lines.push('')
 
   // 表结构
@@ -408,9 +426,11 @@ async function handleDatabaseChange(val: number | null) {
   if (val) {
     const db = databaseList.value.find(d => d.id === val)
     currentDatabaseName.value = db?.name || ''
+    currentDatabaseType.value = db?.type || 'mysql'
     await loadTables()
   } else {
     currentDatabaseName.value = ''
+    currentDatabaseType.value = 'mysql'
     tableList.value = []
     relationList.value = []
   }
@@ -971,6 +991,29 @@ async function copyDescription() {
     ElMessage.error('复制失败')
   }
 }
+
+// 切换全屏
+function toggleFullscreen() {
+  if (!erDiagramRef.value) return
+
+  if (!isFullscreen.value) {
+    // 进入全屏
+    if (erDiagramRef.value.requestFullscreen) {
+      erDiagramRef.value.requestFullscreen()
+    }
+  } else {
+    // 退出全屏
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    }
+  }
+}
+
+// 监听全屏变化
+function handleFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -979,6 +1022,24 @@ async function copyDescription() {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+
+  // 全屏模式样式
+  &:fullscreen {
+    padding: 0;
+    background: var(--bg-primary);
+
+    .toolbar {
+      padding: 16px 24px;
+    }
+
+    .main-content {
+      height: calc(100vh - 60px);
+    }
+
+    .description-panel {
+      max-height: 200px;
+    }
+  }
 }
 
 .toolbar {
@@ -1055,10 +1116,10 @@ async function copyDescription() {
 .table-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 4px;
   transition: all 0.2s ease;
   border: 1px solid transparent;
@@ -1066,7 +1127,7 @@ async function copyDescription() {
   &:hover {
     background: var(--bg-secondary);
     border-color: var(--border-color);
-    transform: translateX(3px);
+    transform: translateX(2px);
   }
 
   &.is-selected {
@@ -1076,12 +1137,18 @@ async function copyDescription() {
 
     .table-icon { color: var(--el-color-primary); transform: scale(1.1); }
     .table-name { color: var(--el-color-primary); font-weight: 600; }
+    .table-code {
+      background: var(--el-color-primary-light-8);
+      border-color: var(--el-color-primary-light-5);
+      color: var(--el-color-primary);
+    }
   }
 
   .table-icon {
     color: var(--text-secondary);
     font-size: 14px;
     transition: all 0.2s ease;
+    flex-shrink: 0;
   }
 
   &:hover .table-icon {
@@ -1094,6 +1161,37 @@ async function copyDescription() {
     color: var(--text-regular);
     font-weight: 500;
     transition: color 0.2s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .table-code {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color-light);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :deep(.el-checkbox) {
+    margin-right: 0;
+    flex-shrink: 0;
+
+    .el-checkbox__inner {
+      width: 14px;
+      height: 14px;
+    }
   }
 }
 

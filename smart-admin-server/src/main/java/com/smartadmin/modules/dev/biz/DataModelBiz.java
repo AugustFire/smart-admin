@@ -211,6 +211,52 @@ public class DataModelBiz {
         columnService.removeById(id);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void batchSaveColumns(DmColumnBatchSaveReq req) {
+        Long tableId = req.getTableId();
+
+        // 1. 处理删除
+        if (req.getDeleteIds() != null && !req.getDeleteIds().isEmpty()) {
+            columnService.removeByIds(req.getDeleteIds());
+        }
+
+        // 2. 处理字段列表（新增和更新）
+        if (req.getColumns() == null || req.getColumns().isEmpty()) {
+            return;
+        }
+
+        List<DevDmColumn> addList = new ArrayList<>();
+        List<DevDmColumn> updateList = new ArrayList<>();
+
+        for (int i = 0; i < req.getColumns().size(); i++) {
+            DmColumnAddReq columnReq = req.getColumns().get(i);
+            DevDmColumn entity = new DevDmColumn();
+            BeanUtils.copyProperties(columnReq, entity);
+            entity.setTableId(tableId);
+            // 设置排序（如果没有指定，按列表顺序）
+            if (entity.getSort() == null || entity.getSort() == 0) {
+                entity.setSort(i + 1);
+            }
+
+            // 根据是否有 id 区分新增和更新
+            if (entity.getId() == null) {
+                addList.add(entity);
+            } else {
+                updateList.add(entity);
+            }
+        }
+
+        // 批量新增
+        if (!addList.isEmpty()) {
+            columnService.saveBatch(addList);
+        }
+
+        // 批量更新
+        if (!updateList.isEmpty()) {
+            columnService.updateBatchById(updateList);
+        }
+    }
+
     private DmColumnResp convertColumnResp(DevDmColumn entity) {
         DmColumnResp resp = new DmColumnResp();
         BeanUtils.copyProperties(entity, resp);

@@ -774,6 +774,15 @@ function handleDocumentClick(e: MouseEvent) {
 
 // 键盘快捷键处理
 function handleKeyDown(e: KeyboardEvent) {
+  // 如果焦点在输入框、文本域等可编辑元素上，跳过快捷键处理
+  const target = e.target as HTMLElement
+  const isEditable = target.tagName === 'INPUT' ||
+                     target.tagName === 'TEXTAREA' ||
+                     target.isContentEditable ||
+                     target.closest('.el-input') ||
+                     target.closest('.el-textarea')
+  if (isEditable) return
+
   // Delete - 删除选中节点
   if (e.key === 'Delete' && selectedNodeId.value !== null) {
     e.preventDefault()

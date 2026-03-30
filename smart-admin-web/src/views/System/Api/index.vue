@@ -122,18 +122,28 @@
           size="small"
           stripe
         >
-          <el-table-column prop="name" label="接口名称" width="120">
+          <el-table-column prop="name" label="接口名称" min-width="100">
             <template #default="{ row }">
               <span class="api-name">{{ row.name || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="接口" min-width="240">
+          <el-table-column label="接口" min-width="180" show-overflow-tooltip>
             <template #default="{ row }">
               <div class="api-cell">
                 <el-tag :type="getMethodType(row.method)" size="small" class="method-tag">{{ row.method }}</el-tag>
                 <code class="api-path">{{ row.path }}</code>
                 <el-icon class="copy-icon" @click="copyPath(row.path)" title="复制路径"><DocumentCopy /></el-icon>
               </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="绑定" width="70" align="center" v-if="!selectedMenu">
+            <template #default="{ row }">
+              <template v-if="row.menuIds?.length">
+                <span class="bind-count">{{ row.menuIds.length }}</span>
+              </template>
+              <template v-else>
+                <span class="unbind-text">-</span>
+              </template>
             </template>
           </el-table-column>
           <el-table-column label="公开" width="60" align="center">
@@ -764,6 +774,25 @@ onMounted(() => {
   .icon-disabled {
     color: var(--text-secondary);
     font-size: 16px;
+  }
+
+  .unbind-text {
+    color: var(--text-placeholder);
+    font-size: 14px;
+  }
+
+  .bind-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--el-color-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
   }
 }
 

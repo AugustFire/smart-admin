@@ -98,52 +98,41 @@
                 <div v-if="expandedTables.has(table.id)" class="table-fields">
                   <div v-if="tableColumnsMap[table.id]?.length === 0" class="fields-empty">
                     <span>暂无字段</span>
-                    <el-button type="primary" size="small" @click="handleAddColumn(table)">添加字段</el-button>
+                    <el-button type="primary" size="small" :icon="EditPen" @click="handleBatchEditColumn(table)">批量编辑</el-button>
                   </div>
                   <div v-else class="fields-content">
                     <div class="fields-toolbar">
-                      <el-button type="primary" size="small" :icon="Plus" @click="handleAddColumn(table)">添加字段</el-button>
+                      <el-button size="small" :icon="EditPen" @click="handleBatchEditColumn(table)">批量编辑</el-button>
+                      <span class="field-count-hint">共 {{ tableColumnsMap[table.id]?.length || 0 }} 个字段</span>
                     </div>
-                    <el-table :data="tableColumnsMap[table.id]" size="small" border stripe max-height="300">
+                    <el-table :data="tableColumnsMap[table.id]" size="small" border stripe max-height="280" style="width: 100%" class="field-table">
                       <el-table-column prop="name" label="字段名" width="100" />
-                      <el-table-column prop="code" label="编码" width="100" />
-                      <el-table-column label="类型" width="100">
+                      <el-table-column prop="code" label="编码" width="110" />
+                      <el-table-column label="类型" width="120">
                         <template #default="{ row }">
                           {{ row.dataType }}{{ row.length ? '(' + row.length + ')' : '' }}
                         </template>
                       </el-table-column>
-                      <el-table-column label="属性" width="150" align="center">
+                      <el-table-column label="属性" width="160" align="left">
                         <template #header>
-                          <el-tooltip placement="top">
+                          <el-tooltip placement="top" effect="dark">
                             <template #content>
-                              <div style="font-size: 12px; line-height: 1.8;">
-                                PK = 主键 (Primary Key)<br/>
-                                FK = 外键 (Foreign Key)<br/>
-                                AI = 自增 (Auto Increment)<br/>
-                                UQ = 唯一 (Unique)<br/>
-                                NN = 非空 (Not Null)<br/>
-                                IDX = 索引 (Index)
-                              </div>
+                              <div class="attr-tip">PK=主键 FK=外键 AI=自增 UQ=唯一 CORE=核心 NN=非空 IDX=索引</div>
                             </template>
-                            <span style="cursor: help; border-bottom: 1px dashed var(--text-secondary);">属性 <el-icon style="font-size: 12px; vertical-align: middle;"><Info-Filled /></el-icon></span>
+                            <span class="attr-header">属性 <el-icon><InfoFilled /></el-icon></span>
                           </el-tooltip>
                         </template>
                         <template #default="{ row }">
-                          <el-tag v-if="row.isPrimary" type="danger" size="small" class="attr-tag" effect="dark">PK</el-tag>
-                          <el-tag v-if="row.isForeign" type="warning" size="small" class="attr-tag" effect="dark">FK</el-tag>
-                          <el-tag v-if="row.isAutoIncrement" type="primary" size="small" class="attr-tag">AI</el-tag>
-                          <el-tag v-if="row.isUnique" type="success" size="small" class="attr-tag">UQ</el-tag>
-                          <el-tag v-if="row.isNullable === 0 || row.isNullable === false" type="info" size="small" class="attr-tag">NN</el-tag>
-                          <el-tag v-if="row.indexType && row.indexType !== 'none'" type="info" size="small" class="attr-tag" effect="plain">IDX</el-tag>
+                          <span v-if="row.isPrimary" class="attr-tag tag-pk">PK</span>
+                          <span v-if="row.isForeign" class="attr-tag tag-fk">FK</span>
+                          <span v-if="row.isAutoIncrement" class="attr-tag tag-ai">AI</span>
+                          <span v-if="row.isUnique" class="attr-tag tag-uq">UQ</span>
+                          <span v-if="row.isCore" class="attr-tag tag-core">CORE</span>
+                          <span v-if="row.isNullable === 0" class="attr-tag tag-nn">NN</span>
+                          <span v-if="row.indexType && row.indexType !== 'none'" class="attr-tag tag-idx">IDX</span>
                         </template>
                       </el-table-column>
                       <el-table-column prop="description" label="描述" min-width="120" show-overflow-tooltip />
-                      <el-table-column label="操作" width="100" align="center" fixed="right">
-                        <template #default="{ row }">
-                          <el-button link type="primary" size="small" @click="editColumn(table, row)">编辑</el-button>
-                          <el-button link type="danger" size="small" @click="deleteColumn(table, row)">删除</el-button>
-                        </template>
-                      </el-table-column>
                     </el-table>
                   </div>
                 </div>
@@ -213,15 +202,22 @@
     <!-- 表单弹窗 -->
     <database-form v-model="databaseFormVisible" :data="currentDatabase" @success="refreshDatabases" />
     <table-form v-model="tableFormVisible" :data="currentTable" :database-id="currentDatabaseId" :database-name="currentDatabaseName" @success="refreshTables" />
-    <column-form v-model="columnFormVisible" :data="currentColumn" :table-id="currentTableId" :database-type="currentDatabaseType" @success="refreshColumns" />
     <relation-form v-model="relationFormVisible" :data="currentRelation" :table-list="tableList" :database-id="currentDatabaseId" @success="refreshRelations" />
+    <batch-column-form
+      v-model="batchColumnFormVisible"
+      :table-id="currentTableId"
+      :table-name="currentTableForBatch?.name || ''"
+      :database-type="currentDatabaseType"
+      :columns="currentTableForBatch ? tableColumnsMap[currentTableForBatch.id] : []"
+      @success="refreshColumns"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Refresh, Folder, Grid, Edit, Delete, ArrowRight, Share, InfoFilled } from '@element-plus/icons-vue'
+import { Plus, Refresh, Folder, Grid, Edit, Delete, ArrowRight, Share, InfoFilled, EditPen } from '@element-plus/icons-vue'
 import {
   getDatabaseListApi,
   getTableListApi,
@@ -229,13 +225,12 @@ import {
   getRelationListApi,
   deleteDatabaseApi,
   deleteTableApi,
-  deleteColumnApi,
   deleteRelationApi
 } from '@/api/datamodel'
 import DatabaseForm from './components/DatabaseForm.vue'
 import TableForm from './components/TableForm.vue'
-import ColumnForm from './components/ColumnForm.vue'
 import RelationForm from './components/RelationForm.vue'
+import BatchColumnForm from './components/BatchColumnForm.vue'
 
 // 内部标签页
 const innerTab = ref('tables')
@@ -253,7 +248,6 @@ const currentDatabaseType = ref('mysql')
 const currentDatabase = ref<any>(null)
 const currentTable = ref<any>(null)
 const currentTableId = ref<number | null>(null)
-const currentColumn = ref<any>(null)
 const currentRelation = ref<any>(null)
 
 // 展开状态
@@ -262,8 +256,11 @@ const expandedTables = reactive(new Set<number>())
 // 弹窗状态
 const databaseFormVisible = ref(false)
 const tableFormVisible = ref(false)
-const columnFormVisible = ref(false)
 const relationFormVisible = ref(false)
+const batchColumnFormVisible = ref(false)
+
+// 批量编辑当前表
+const currentTableForBatch = ref<any>(null)
 
 onMounted(() => {
   refreshDatabases()
@@ -402,30 +399,11 @@ async function deleteTable(table: any) {
   } catch (e) {}
 }
 
-// 字段操作
-function handleAddColumn(table: any) {
+// 批量编辑字段
+function handleBatchEditColumn(table: any) {
   currentTableId.value = table.id
-  currentTable.value = table
-  currentColumn.value = null
-  columnFormVisible.value = true
-}
-
-function editColumn(table: any, column: any) {
-  currentTableId.value = table.id
-  currentTable.value = table
-  currentColumn.value = column
-  columnFormVisible.value = true
-}
-
-async function deleteColumn(table: any, column: any) {
-  try {
-    await ElMessageBox.confirm(`确认删除字段 "${column.name}" 吗？`, '提示', { type: 'warning' })
-    currentTableId.value = table.id
-    await deleteColumnApi(column.id)
-    ElMessage.success('删除成功')
-    refreshColumns()
-    refreshRelations()
-  } catch (e) {}
+  currentTableForBatch.value = table
+  batchColumnFormVisible.value = true
 }
 
 // 关系操作
@@ -769,17 +747,79 @@ function getRelationType(type: string): 'success' | 'primary' | 'warning' | 'dan
   }
 
   .fields-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 8px;
+
+    .field-count-hint {
+      margin-left: auto;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+  }
+
+  // 表格样式 - 依赖全局样式，仅做必要调整
+  .field-table {
+    :deep(.el-table__cell) {
+      padding: 6px 8px;
+    }
+  }
+
+  .attr-header {
+    cursor: help;
+    .el-icon {
+      font-size: 12px;
+      vertical-align: middle;
+      margin-left: 2px;
+      color: var(--text-placeholder);
+    }
+  }
+
+  // 属性标签 - 使用统一配色
+  .attr-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-right: 2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    &.tag-pk {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    &.tag-fk {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    &.tag-ai {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+    &.tag-uq {
+      background: #d1fae5;
+      color: #059669;
+    }
+    &.tag-nn {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    &.tag-core {
+      background: #fef9c3;
+      color: #ca8a04;
+    }
+    &.tag-idx {
+      background: #ede9fe;
+      color: #7c3aed;
+    }
   }
 }
 
-.attr-tag {
-  margin-right: 2px;
-  font-weight: 600;
-  font-size: 10px;
-  padding: 0 4px;
-  height: 18px;
-  line-height: 16px;
+.attr-tip {
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 // 关系面板

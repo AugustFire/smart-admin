@@ -10,6 +10,9 @@ import lombok.Data;
 @Data
 public class DmColumnAddReq {
 
+    /** 主键ID（批量保存时用于区分新增/更新） */
+    private Long id;
+
     /** 所属表ID */
     @NotNull(message = "表ID不能为空")
     private Long tableId;

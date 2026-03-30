@@ -140,6 +140,14 @@ export function deleteColumnApi(id: number) {
   })
 }
 
+export function batchSaveColumnsApi(data: any) {
+  return request({
+    url: '/datamodel/column/batch',
+    method: 'post',
+    data
+  })
+}
+
 // ==================== 关系管理 ====================
 
 export function getRelationListApi(databaseId: number) {

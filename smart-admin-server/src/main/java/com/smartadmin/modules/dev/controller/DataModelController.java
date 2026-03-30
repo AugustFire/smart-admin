@@ -152,6 +152,14 @@ public class DataModelController {
         return Result.success();
     }
 
+    @PostMapping("/column/batch")
+    @OperLog(title = "数据模型-字段", businessType = BusinessType.UPDATE)
+    @Operation(summary = "批量保存字段")
+    public Result<Void> batchSaveColumns(@Valid @RequestBody DmColumnBatchSaveReq req) {
+        dataModelBiz.batchSaveColumns(req);
+        return Result.success();
+    }
+
     // ==================== 关系管理 ====================
 
     @GetMapping("/relation/list")

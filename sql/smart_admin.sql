@@ -11,7 +11,7 @@
  Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 28/03/2026 14:53:14
+ Date: 30/03/2026 12:03:33
 */
 
 SET NAMES utf8mb4;
@@ -42,9 +42,9 @@ CREATE TABLE `dev_dm_column`  (
                                   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                   `deleted` tinyint NULL DEFAULT 0 COMMENT '删除标志 0=未删除 1=已删除',
                                   PRIMARY KEY (`id`) USING BTREE,
-                                  UNIQUE INDEX `uk_dev_dm_column_table_code`(`table_id` ASC, `code` ASC) USING BTREE,
+                                  UNIQUE INDEX `uk_dev_dm_column_table_code`(`table_id` ASC, `code` ASC, `deleted` ASC) USING BTREE,
                                   INDEX `idx_table_id`(`table_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '数据模型-表字段信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 60 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '数据模型-表字段信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of dev_dm_column
@@ -79,6 +79,10 @@ INSERT INTO `dev_dm_column` VALUES (27, 8, '主键ID', 'ID', 'bigint', NULL, 1, 
 INSERT INTO `dev_dm_column` VALUES (28, 8, 'Org', 'Org', 'bigint', NULL, 0, 1, 1, 0, 0, 0, 'none', NULL, '组织id', 0, '2026-03-28 14:11:03', '2026-03-28 14:11:03', 0);
 INSERT INTO `dev_dm_column` VALUES (29, 8, '订单编号', 'DocNo', 'varchar', 50, 0, 0, 1, 1, 0, 0, 'none', NULL, '', 3, '2026-03-28 14:11:49', '2026-03-28 14:12:35', 0);
 INSERT INTO `dev_dm_column` VALUES (30, 8, '是否取消', 'Cancel_Canceled', 'tinyint', NULL, 0, 0, 1, 0, 0, 0, 'none', NULL, '', 4, '2026-03-28 14:15:39', '2026-03-28 14:15:47', 0);
+INSERT INTO `dev_dm_column` VALUES (35, 9, 'ID', 'id', 'bigint', NULL, 1, 0, 0, 0, 0, 0, 'none', '', '', 1, '2026-03-30 11:06:20', '2026-03-30 11:57:47', 0);
+INSERT INTO `dev_dm_column` VALUES (36, 9, '销售单SO', 'SO', 'bigint', NULL, 0, 0, 0, 1, 0, 0, 'none', '', '', 2, '2026-03-30 11:06:20', '2026-03-30 11:57:47', 0);
+INSERT INTO `dev_dm_column` VALUES (37, 9, '品号Id', 'iteminfo_itemid', 'varchar', NULL, 0, 0, 0, 1, 0, 0, 'none', '', 'CBO_ItemMaster表主键id', 3, '2026-03-30 11:06:20', '2026-03-30 11:57:47', 0);
+INSERT INTO `dev_dm_column` VALUES (59, 9, '产品备注', 'DescFlexField_PubDescSeg12', 'varchar', NULL, 0, 0, 0, 1, 0, 0, 'none', '', '产品要求（备注）', 4, '2026-03-30 11:25:32', '2026-03-30 11:57:47', 0);
 
 -- ----------------------------
 -- Table structure for dev_dm_database
@@ -103,8 +107,8 @@ CREATE TABLE `dev_dm_database`  (
 -- Records of dev_dm_database
 -- ----------------------------
 INSERT INTO `dev_dm_database` VALUES (1, 'SmartAdmin系统', 'smart_admin', 'mysql', 'SmartAdmin 后台管理系统的数据库表结构演示', 1, 1, '2026-03-28 08:50:53', '2026-03-28 14:52:19', 0);
-INSERT INTO `dev_dm_database` VALUES (2, '基础mysql-业务库1', 'base-mysql-group1', 'mysql', '', 2, 1, '2026-03-28 14:01:49', '2026-03-28 14:05:49', 0);
-INSERT INTO `dev_dm_database` VALUES (3, '用友数据库', 'u9-erp', 'mysql', '', 3, 1, '2026-03-28 14:05:39', '2026-03-28 14:05:39', 0);
+INSERT INTO `dev_dm_database` VALUES (2, '基础mysql-业务库1', 'base-mysql-group1', 'mysql', '', 2, 1, '2026-03-28 14:01:49', '2026-03-28 15:50:26', 1);
+INSERT INTO `dev_dm_database` VALUES (3, '用友数据库', 'u9-erp', 'sqlserver', '', 2, 1, '2026-03-28 14:05:39', '2026-03-30 10:58:54', 0);
 
 -- ----------------------------
 -- Table structure for dev_dm_relation
@@ -155,7 +159,7 @@ CREATE TABLE `dev_dm_table`  (
                                  PRIMARY KEY (`id`) USING BTREE,
                                  UNIQUE INDEX `uk_dev_dm_table_database_code`(`database_id` ASC, `code` ASC) USING BTREE,
                                  INDEX `idx_database_id`(`database_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '数据模型-数据表信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '数据模型-数据表信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of dev_dm_table
@@ -168,6 +172,7 @@ INSERT INTO `dev_dm_table` VALUES (5, 1, '用户角色关联', 'sys_user_role', 
 INSERT INTO `dev_dm_table` VALUES (6, 1, '角色菜单关联', 'sys_role_menu', '角色与菜单的多对多关联', 6, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53', 0);
 INSERT INTO `dev_dm_table` VALUES (7, 1, '菜单接口关联', 'sys_menu_api', '菜单与API的多对多关联', 7, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53', 0);
 INSERT INTO `dev_dm_table` VALUES (8, 3, '销售单', 'SM_SO', '', 0, 1, '2026-03-28 14:07:46', '2026-03-28 14:07:46', 0);
+INSERT INTO `dev_dm_table` VALUES (9, 3, '销售单行', 'SM_SOLine', '', 1, 1, '2026-03-30 11:04:05', '2026-03-30 11:04:05', 0);
 
 -- ----------------------------
 -- Table structure for sys_api
@@ -188,7 +193,7 @@ CREATE TABLE `sys_api`  (
                             `deleted` tinyint NULL DEFAULT 0 COMMENT '删除标志：0=未删除，1=已删除',
                             PRIMARY KEY (`id`) USING BTREE,
                             INDEX `idx_path`(`path`(100) ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 102 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '接口资源表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 103 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '接口资源表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_api
@@ -251,6 +256,7 @@ INSERT INTO `sys_api` VALUES (98, '/datamodel/relation', 'POST', '新增关系',
 INSERT INTO `sys_api` VALUES (99, '/datamodel/relation', 'PUT', '编辑关系', 0, 1, NULL, '', '2026-03-28 08:50:53', '', '2026-03-28 08:50:53', 0);
 INSERT INTO `sys_api` VALUES (100, '/datamodel/relation/*', 'DELETE', '删除关系', 0, 1, NULL, '', '2026-03-28 08:50:53', '', '2026-03-28 08:50:53', 0);
 INSERT INTO `sys_api` VALUES (101, '/datamodel/er-diagram/*', 'GET', 'E-R图数据', 0, 1, NULL, '', '2026-03-28 08:50:53', '', '2026-03-28 08:50:53', 0);
+INSERT INTO `sys_api` VALUES (102, '/datamodel/column/batch', 'POST', '批量保存字段', 0, 1, '数据模型字段批量新增和更新', '', '2026-03-30 09:00:08', '', '2026-03-30 09:39:31', 0);
 
 -- ----------------------------
 -- Table structure for sys_dict_data
@@ -334,37 +340,9 @@ CREATE TABLE `sys_login_log`  (
                                   PRIMARY KEY (`id`) USING BTREE,
                                   INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
                                   INDEX `idx_login_time`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 49 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志表' ROW_FORMAT = DYNAMIC;
 
--- ----------------------------
--- Records of sys_login_log
--- ----------------------------
-INSERT INTO `sys_login_log` VALUES (11, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-27 16:28:00');
-INSERT INTO `sys_login_log` VALUES (12, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 09:27:09');
-INSERT INTO `sys_login_log` VALUES (13, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 09:27:11');
-INSERT INTO `sys_login_log` VALUES (14, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 09:35:03');
-INSERT INTO `sys_login_log` VALUES (15, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 09:35:19');
-INSERT INTO `sys_login_log` VALUES (16, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 09:36:42');
-INSERT INTO `sys_login_log` VALUES (17, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 09:36:56');
-INSERT INTO `sys_login_log` VALUES (18, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 09:53:53');
-INSERT INTO `sys_login_log` VALUES (19, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 09:54:03');
-INSERT INTO `sys_login_log` VALUES (20, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 10:08:41');
-INSERT INTO `sys_login_log` VALUES (21, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 10:08:42');
-INSERT INTO `sys_login_log` VALUES (22, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 10:30:53');
-INSERT INTO `sys_login_log` VALUES (23, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 10:30:55');
-INSERT INTO `sys_login_log` VALUES (24, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 10:33:11');
-INSERT INTO `sys_login_log` VALUES (25, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 10:33:12');
-INSERT INTO `sys_login_log` VALUES (26, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 10:49:44');
-INSERT INTO `sys_login_log` VALUES (27, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 10:54:30');
-INSERT INTO `sys_login_log` VALUES (28, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 11:09:00');
-INSERT INTO `sys_login_log` VALUES (29, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 11:09:03');
-INSERT INTO `sys_login_log` VALUES (30, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 11:14:32');
-INSERT INTO `sys_login_log` VALUES (31, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 11:14:34');
-INSERT INTO `sys_login_log` VALUES (32, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '退出成功', '2026-03-28 11:21:59');
-INSERT INTO `sys_login_log` VALUES (33, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 11:22:01');
-INSERT INTO `sys_login_log` VALUES (34, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 12:02:03');
-INSERT INTO `sys_login_log` VALUES (35, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 12:13:52');
-INSERT INTO `sys_login_log` VALUES (36, 1, 'admin', 1, '127.0.0.1', '', 'Chrome', 'Windows', '登录成功', '2026-03-28 13:45:54');
+
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -387,7 +365,7 @@ CREATE TABLE `sys_menu`  (
                              PRIMARY KEY (`id`) USING BTREE,
                              INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
                              INDEX `idx_type`(`type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 61 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -435,6 +413,7 @@ INSERT INTO `sys_menu` VALUES (57, 51, '删除数据表', 3, '', '', 'datamodel:
 INSERT INTO `sys_menu` VALUES (58, 51, '新增关系', 3, '', '', 'datamodel:relation:add', '', 7, 1, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53');
 INSERT INTO `sys_menu` VALUES (59, 51, '编辑关系', 3, '', '', 'datamodel:relation:edit', '', 8, 1, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53');
 INSERT INTO `sys_menu` VALUES (60, 51, '删除关系', 3, '', '', 'datamodel:relation:delete', '', 9, 1, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53');
+INSERT INTO `sys_menu` VALUES (61, 51, '批量编辑字段', 3, '', '', 'datamodel:column:batch', '', 10, 1, 1, '2026-03-30 09:00:08', '2026-03-30 09:00:08');
 
 -- ----------------------------
 -- Table structure for sys_menu_api
@@ -448,7 +427,7 @@ CREATE TABLE `sys_menu_api`  (
                                  PRIMARY KEY (`id`) USING BTREE,
                                  UNIQUE INDEX `uk_menu_api`(`menu_id` ASC, `api_id` ASC) USING BTREE,
                                  INDEX `idx_api_id`(`api_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 55 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单接口关联表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 58 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单接口关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu_api
@@ -505,6 +484,7 @@ INSERT INTO `sys_menu_api` VALUES (51, 58, 98, '2026-03-28 08:50:53');
 INSERT INTO `sys_menu_api` VALUES (52, 59, 99, '2026-03-28 08:50:53');
 INSERT INTO `sys_menu_api` VALUES (53, 60, 100, '2026-03-28 08:50:53');
 INSERT INTO `sys_menu_api` VALUES (54, 51, 101, '2026-03-28 08:50:53');
+INSERT INTO `sys_menu_api` VALUES (57, 61, 102, '2026-03-30 09:39:31');
 
 -- ----------------------------
 -- Table structure for sys_oper_log
@@ -530,7 +510,7 @@ CREATE TABLE `sys_oper_log`  (
                                  PRIMARY KEY (`id`) USING BTREE,
                                  INDEX `idx_oper_time`(`oper_time` ASC) USING BTREE,
                                  INDEX `idx_business_type`(`business_type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 337 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 356 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for sys_role

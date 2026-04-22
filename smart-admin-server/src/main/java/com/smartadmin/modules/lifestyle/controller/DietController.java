@@ -65,13 +65,19 @@ public class DietController {
 
     @Operation(summary = "获取常用饮食库（食物名称联想）")
     @GetMapping("/history/foods")
-    public Result<List<String>> get常用饮食库() {
-        return Result.success(dietBiz.get常用饮食库());
+    public Result<List<String>> getFoodHistory() {
+        return Result.success(dietBiz.getFoodHistory());
     }
 
     @Operation(summary = "根据食物名称获取最近记录（用于自动填充）")
     @GetMapping("/history/food")
     public Result<DietRecordResp> getLatestByFoodName(@RequestParam String foodName) {
         return Result.success(dietBiz.getLatestByFoodName(foodName));
+    }
+
+    @Operation(summary = "根据餐食类型获取最近记录（用于选择餐食类型后自动填充）")
+    @GetMapping("/history/meal")
+    public Result<DietRecordResp> getLatestByMealType(@RequestParam String mealType) {
+        return Result.success(dietBiz.getLatestByMealType(mealType));
     }
 }

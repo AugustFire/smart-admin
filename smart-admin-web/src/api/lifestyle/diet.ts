@@ -70,3 +70,7 @@ export function getFoodHistoryApi() {
 export function getFoodLatestApi(foodName: string) {
   return request.get(`${BASE_URL}/history/food`, { params: { foodName } })
 }
+
+export function getMealLatestApi(mealType: string) {
+  return request.get(`${BASE_URL}/history/meal`, { params: { mealType } })
+}

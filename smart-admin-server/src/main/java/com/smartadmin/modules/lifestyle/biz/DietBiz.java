@@ -141,7 +141,7 @@ public class DietBiz {
     /**
      * 获取常用食物名称列表（用于联想）
      */
-    public List<String> get常用饮食库() {
+    public List<String> getFoodHistory() {
         Long userId = UserContext.getUserId();
         return dietRecordService.lambdaQuery()
                 .eq(DietRecord::getUserId, userId)
@@ -158,12 +158,27 @@ public class DietBiz {
      */
     public DietRecordResp getLatestByFoodName(String foodName) {
         Long userId = UserContext.getUserId();
-        DietRecord record = dietRecordService.lambdaQuery()
+        List<DietRecord> records = dietRecordService.lambdaQuery()
                 .eq(DietRecord::getUserId, userId)
                 .eq(DietRecord::getFoodName, foodName)
                 .orderByDesc(DietRecord::getCreateTime)
-                .one();
-        return record != null ? toResp(record) : null;
+                .last("LIMIT 1")
+                .list();
+        return !records.isEmpty() ? toResp(records.get(0)) : null;
+    }
+
+    /**
+     * 根据餐食类型获取最近一条记录（用于选择餐食类型后自动填充）
+     */
+    public DietRecordResp getLatestByMealType(String mealType) {
+        Long userId = UserContext.getUserId();
+        List<DietRecord> records = dietRecordService.lambdaQuery()
+                .eq(DietRecord::getUserId, userId)
+                .eq(DietRecord::getMealType, mealType)
+                .orderByDesc(DietRecord::getCreateTime)
+                .last("LIMIT 1")
+                .list();
+        return !records.isEmpty() ? toResp(records.get(0)) : null;
     }
 
     private DietRecordResp toResp(DietRecord record) {

@@ -306,7 +306,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, Edit, Delete, Search, Grid, Clock, Calendar, Download, ArrowLeft, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
@@ -318,6 +318,7 @@ import {
   deleteDietApi,
   getFoodHistoryApi,
   getFoodLatestApi,
+  getMealLatestApi,
   type DietRecord,
   type DietRecordAddReq,
 } from '@/api/lifestyle/diet'
@@ -355,6 +356,19 @@ const form = ref<DietRecordAddReq & { id?: number }>({
   tags: '',
   mood: '',
   description: '',
+})
+
+watch(() => form.value.mealType, async (newMealType) => {
+  if (newMealType && !isEdit.value) {
+    try {
+      const { data } = await getMealLatestApi(newMealType)
+      if (data) {
+        form.value.foodName = data.foodName || ''
+        form.value.portion = data.portion || ''
+        form.value.tags = data.tags || ''
+      }
+    } catch (e) { /* ignore */ }
+  }
 })
 
 const rules: FormRules = {
@@ -639,7 +653,7 @@ function fetchCalendarData() {
 function handleAdd() {
   isEdit.value = false
   form.value = {
-    recordDate: dateRange.value?.[0] || getToday(),
+    recordDate: getToday(),
     mealTime: getNowTime(),
     mealType: '',
     foodName: '',
@@ -668,7 +682,13 @@ function handleEdit(record: DietRecord) {
 }
 
 function handleDelete(record: DietRecord) {
-  ElMessageBox.confirm(`确认删除「${record.foodName}」吗？`, '提示', { type: 'warning' }).then(() => {
+  ElMessageBox.confirm(`确认删除「${record.foodName}」吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+    width: '320px',
+    closeOnClickModal: false,
+  }).then(() => {
     deleteDietApi(record.id).then(() => {
       ElMessage.success('删除成功')
       fetchData()
@@ -806,6 +826,9 @@ onMounted(() => {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   transition: box-shadow 0.3s ease;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     transform: translateY(-3px);
@@ -872,6 +895,9 @@ onMounted(() => {
   position: relative;
   z-index: 1;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .card-top {
@@ -944,6 +970,7 @@ onMounted(() => {
   gap: 4px;
   padding-top: 10px;
   border-top: 1px solid var(--border-color-light);
+  margin-top: auto;
 }
 
 // 时间线视图
@@ -1247,6 +1274,38 @@ onMounted(() => {
     font-size: 18px;
     padding: 6px;
     &.el-button--primary { transform: scale(1.1); }
+  }
+}
+
+// 对话框
+:deep(.el-dialog) {
+  .el-dialog__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .el-dialog__headerbtn {
+      position: static;
+      top: auto;
+      right: auto;
+      font-size: 18px;
+
+      .el-dialog__close {
+        color: var(--text-secondary);
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
+    }
   }
 }
 </style>

@@ -72,17 +72,25 @@ smart-admin/
 │       └── modules/                  # 业务模块
 │           ├── auth/                 # 认证授权
 │           ├── system/               # 系统管理（用户、角色、菜单、API、字典、日志）
-│           └── dev/                  # 开发工具（数据模型）
+│           ├── dev/                  # 开发工具（数据模型）
+│           └── lifestyle/            # 生活管理（饮食记录、脑暴笔记、任务记录、文本收藏）
 │
 ├── smart-admin-web/                  # Vue 3 前端
 │   └── src/
 │       ├── api/                      # API 封装
 │       ├── views/                    # 页面组件
-│       │   └── DevTools/             # 开发工具
-│       │       └── DataModel/        # 数据模型（数据库、表、字段、关系、E-R图）
+│       │   ├── System/               # 系统管理
+│       │   ├── DevTools/             # 开发工具
+│       │   │   └── DataModel/        # 数据模型（数据库、表、字段、关系、E-R图）
+│       │   └── Lifestyle/             # 生活管理
+│       │       ├── Diet/             # 饮食记录
+│       │       ├── brainstorm/        # 脑暴笔记
+│       │       ├── task-record/      # 任务记录
+│       │       └── text-collection/  # 文本收藏
 │       ├── router/                   # 路由配置
 │       ├── store/                    # Pinia 状态
 │       ├── styles/                   # 全局样式
+│       ├── components/               # 公共组件
 │       └── utils/                    # 工具函数
 │
 └── sql/                              # 数据库脚本

@@ -436,6 +436,69 @@ html[data-theme='dark'] .el-table {
   }
 }
 
+/* 折叠菜单弹出层样式修复 */
+.el-menu--vertical.el-menu--popup,
+.el-menu--vertical.el-menu--popup.el-menu {
+  background-color: var(--sidebar-bg-color) !important;
+  border: 1px solid var(--sidebar-border-color) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  padding: 4px !important;
+  min-width: 180px !important;
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    background-color: transparent !important;
+    color: var(--sidebar-text-color) !important;
+    border-radius: 4px !important;
+    height: 38px !important;
+    margin: 2px 0 !important;
+
+    &:hover {
+      background-color: var(--sidebar-hover-bg-color) !important;
+      color: var(--sidebar-text-color) !important;
+    }
+  }
+
+  .el-menu-item.is-active,
+  .el-sub-menu__title.is-active {
+    background-color: var(--sidebar-active-bg-color) !important;
+    color: var(--sidebar-active-text-color) !important;
+  }
+
+  .el-sub-menu .el-menu {
+    background-color: var(--sidebar-bg-color) !important;
+  }
+}
+
+/* Element Plus Popper 弹出层背景色修复 */
+.el-popper,
+.el-popper.is-dark,
+.el-dropdown-menu {
+  background-color: var(--sidebar-bg-color) !important;
+  border-color: var(--sidebar-border-color) !important;
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    background-color: var(--sidebar-bg-color) !important;
+    color: var(--sidebar-text-color) !important;
+
+    &:hover {
+      background-color: var(--sidebar-hover-bg-color) !important;
+      color: var(--sidebar-text-color) !important;
+    }
+
+    &.is-active {
+      background-color: var(--sidebar-active-bg-color) !important;
+      color: var(--sidebar-active-text-color) !important;
+    }
+  }
+}
+
+.el-popper .el-popper__arrow::before {
+  background-color: var(--sidebar-bg-color) !important;
+  border-color: var(--sidebar-border-color) !important;
+}
+
 /* 标签页样式优化 */
 .el-tabs__item {
   border-radius: 4px;

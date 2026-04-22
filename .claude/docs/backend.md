@@ -120,6 +120,17 @@ modules/xxx/                    # 业务模块
 
 **核心 Biz：** `DataModelBiz.java` - 处理数据库逆向生成、E-R 图数据组装等复杂业务
 
+### Lifestyle 生活管理模块
+
+位于 `modules/lifestyle/`，包含生活记录管理功能：
+
+| 实体 | 说明 | 对应表 |
+|------|------|--------|
+| DietRecord | 饮食记录 | lifestyle_diet_record |
+| BrainstormIdea | 脑暴想法 | lifestyle_brainstorm |
+| TaskRecord | 任务记录 | lifestyle_task_record |
+| TextCollection | 文本收藏 | lifestyle_text_collection |
+
 ## 数据库规范
 
 ### 命名约定

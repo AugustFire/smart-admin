@@ -13,20 +13,32 @@
 ```
 src/
 ├── api/                    # API 封装
-│   └── datamodel.ts        # 数据模型 API
+│   ├── datamodel.ts        # 数据模型 API
+│   └── lifestyle/          # 生活管理 API
+│       ├── diet.ts         # 饮食记录
+│       ├── brainstorm.ts   # 脑暴笔记
+│       ├── task-record.ts  # 任务记录
+│       └── text-collection.ts  # 文本收藏
 ├── components/             # 公共组件
+│   └── DateRangePicker/    # 日期范围选择器
 ├── views/                  # 页面组件
-│   └── DevTools/           # 开发工具模块
-│       └── DataModel/      # 数据模型功能
-│           ├── index.vue
-│           ├── ModelManager.vue
-│           ├── ERDiagram.vue
-│           ├── RelationManager.vue
-│           └── components/
-│               ├── DatabaseForm.vue
-│               ├── TableForm.vue
-│               ├── ColumnForm.vue
-│               └── RelationForm.vue
+│   ├── System/             # 系统管理模块
+│   ├── DevTools/           # 开发工具模块
+│   │   └── DataModel/      # 数据模型功能
+│   │       ├── index.vue
+│   │       ├── ModelManager.vue
+│   │       ├── ERDiagram.vue
+│   │       ├── RelationManager.vue
+│   │       └── components/
+│   │           ├── DatabaseForm.vue
+│   │           ├── TableForm.vue
+│   │           ├── ColumnForm.vue
+│   │           └── RelationForm.vue
+│   └── Lifestyle/          # 生活管理模块
+│       ├── Diet/           # 饮食记录（卡片/时间线/日历视图）
+│       ├── brainstorm/      # 脑暴笔记（卡片/时间线视图）
+│       ├── task-record/     # 任务记录（列表/甘特图视图）
+│       └── text-collection/ # 文本收藏（编辑/预览分离）
 ├── router/                 # 路由配置
 ├── store/                  # Pinia 状态
 ├── utils/                  # 工具函数

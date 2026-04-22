@@ -3,17 +3,7 @@
     <!-- 顶部工具栏 -->
     <div class="top-bar">
       <div class="left">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始"
-          end-placeholder="结束"
-          format="MM-DD"
-          value-format="YYYY-MM-DD"
-          size="default"
-          @change="handleQuery"
-        />
+        <DateRangePicker v-model="dateRange" @change="handleQuery" />
         <el-button type="primary" @click="handleQuery">
           <el-icon><Search /></el-icon>
         </el-button>
@@ -88,7 +78,7 @@
               <span v-if="record.portion" class="food-portion">{{ record.portion }}</span>
             </div>
             <div v-if="record.tagNames" class="card-tags">
-              <el-tag v-for="tag in record.tagNames.split('、')" :key="tag" size="small" effect="plain">{{ tag }}</el-tag>
+              <el-tag v-for="tag in (record.tagNames || '').split('、')" :key="tag" size="small" effect="plain" :type="getTagType(tag)">{{ tag }}</el-tag>
             </div>
             <div class="card-footer">
               <el-button link type="primary" @click="handleEdit(record)">
@@ -149,7 +139,7 @@
                   <span v-if="record.portion" class="food-portion">{{ record.portion }}</span>
                 </div>
                 <div v-if="record.tagNames" class="row-tags">
-                  <el-tag v-for="tag in record.tagNames.split('、')" :key="tag" size="small" effect="plain">{{ tag }}</el-tag>
+                  <el-tag v-for="tag in (record.tagNames || '').split('、')" :key="tag" size="small" effect="plain" :type="getTagType(tag)">{{ tag }}</el-tag>
                 </div>
               </div>
             </div>
@@ -254,7 +244,7 @@
         <el-form-item label="餐食类型" prop="mealType">
           <el-select v-model="form.mealType" placeholder="请选择" style="width: 100%">
             <el-option
-              v-for="meal in mealTypesForSelect"
+              v-for="meal in mealTypes"
               :key="meal.value"
               :label="meal.label"
               :value="meal.value"
@@ -330,6 +320,7 @@ import {
   type DietRecord,
   type DietRecordAddReq,
 } from '@/api/lifestyle/diet'
+import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
 const dateRange = ref<string[]>([])
 const records = ref<DietRecord[]>([])
@@ -345,6 +336,7 @@ const viewLabels: Record<string, string> = {
   timeline: '时间线',
   calendar: '日历',
 }
+
 const calendarDate = ref(new Date())
 const calendarViewMode = ref<'month' | 'week'>('month')
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
@@ -375,14 +367,6 @@ const mealTypes = [
   { label: '饮料', value: 'drink' },
 ]
 
-const mealTypesForSelect = [
-  { label: '早餐', value: 'breakfast' },
-  { label: '午餐', value: 'lunch' },
-  { label: '晚餐', value: 'dinner' },
-  { label: '宵夜', value: 'snack' },
-  { label: '饮料', value: 'drink' },
-]
-
 const availableTags = [
   { label: '健康', value: 'healthy' },
   { label: '轻食', value: 'light' },
@@ -391,6 +375,19 @@ const availableTags = [
   { label: '辣', value: 'spicy' },
   { label: '清淡', value: 'bland' },
 ]
+
+const tagNameToTypeMap: Record<string, string> = {
+  '健康': 'success',
+  '轻食': 'primary',
+  '高糖': 'danger',
+  '油炸': 'warning',
+  '辣': 'warning',
+  '清淡': 'info',
+}
+
+function getTagType(tagName: string): string {
+  return tagNameToTypeMap[tagName] || ''
+}
 
 const moods = [
   { label: '吃得很满足', value: 'happy', emoji: '😄' },
@@ -512,7 +509,7 @@ function getMealRecords(mealType: string) {
 }
 
 function getMealColor(mealType: string) {
-  return mealColorMap[mealType] || '#999'
+  return mealColorMap[mealType] || 'var(--el-color-info)'
 }
 
 function getMealEmoji(mealType: string) {

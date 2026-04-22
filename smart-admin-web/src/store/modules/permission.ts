@@ -117,6 +117,9 @@ export const usePermissionStore = defineStore('permission', {
         'system/operlog/index': () => import('@/views/System/Operlog/index.vue'),
         'devtools/datamodel/index': () => import('@/views/DevTools/DataModel/index.vue'),
         'lifestyle/diet/index': () => import('@/views/Lifestyle/Diet/index.vue'),
+        'lifestyle/brainstorm/index': () => import('@/views/Lifestyle/brainstorm/index.vue'),
+        'lifestyle/text-collection/index': () => import('@/views/Lifestyle/text-collection/index.vue'),
+        'lifestyle/task-record/index': () => import('@/views/Lifestyle/task-record/index.vue'),
       }
 
       return componentMap[path] || (() => import('@/views/Error/404.vue'))

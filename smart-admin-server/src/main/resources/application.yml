@@ -47,8 +47,6 @@ knife4j:
 
 # 日志配置
 logging:
-  file:
-    name: logs/smart-admin.log
   charset:
     console: UTF-8
     file: UTF-8

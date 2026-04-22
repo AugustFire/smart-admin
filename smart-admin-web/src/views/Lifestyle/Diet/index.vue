@@ -307,6 +307,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, Edit, Delete, Search, Grid, Clock, Calendar, Download, ArrowLeft, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
@@ -322,7 +323,10 @@ import {
 } from '@/api/lifestyle/diet'
 import DateRangePicker from '@/components/DateRangePicker/index.vue'
 
-const dateRange = ref<string[]>([])
+const dateRange = ref<string[]>([
+  dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+  dayjs().format('YYYY-MM-DD')
+])
 const records = ref<DietRecord[]>([])
 const dialogVisible = ref(false)
 const submitting = ref(false)
@@ -713,7 +717,7 @@ function handleExport() {
 
 onMounted(() => {
   const today = getToday()
-  dateRange.value = [today, today]
+  dateRange.value = [dayjs().subtract(7, 'day').format('YYYY-MM-DD'), today]
   fetchData()
   fetchFoodHistory()
 })

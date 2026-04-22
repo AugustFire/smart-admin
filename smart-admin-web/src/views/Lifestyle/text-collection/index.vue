@@ -37,7 +37,19 @@
             :class="{ active: currentCategoryId === cat.id }"
             @click="currentCategoryId = cat.id"
           >
-            {{ cat.name }}
+            <span v-if="editingCategoryId !== cat.id" @click.stop="currentCategoryId = cat.id">{{ cat.name }}</span>
+            <span v-else class="category-tab-edit-wrapper" @click.stop>
+              <el-input
+                v-model="editingCategoryName"
+                size="small"
+                class="category-tab-edit-input"
+                @keyup.enter="saveCategoryEdit(cat)"
+                @blur="saveCategoryEdit(cat)"
+                ref="categoryEditInputRef"
+                autofocus
+              />
+            </span>
+            <el-icon class="category-tab-edit" @click.stop="startCategoryEdit(cat)"><Edit /></el-icon>
             <el-icon class="category-tab-delete" @click.stop="handleDeleteCategory(cat)"><Close /></el-icon>
           </span>
           <span class="category-tab category-tab-add" @click="showCategoryInput = true" v-if="!showCategoryInput">
@@ -105,10 +117,38 @@
       <!-- 顶部工具栏 -->
       <div class="top-toolbar">
         <div class="toolbar-left">
-          <span class="current-title">{{ currentTitle || '未命名' }}</span>
+          <span v-show="editingTitle" class="current-title-edit-wrapper">
+            <el-input
+              v-model="editingTitleValue"
+              size="small"
+              class="current-title-input"
+              placeholder="输入文件名"
+              @keyup.enter="saveTitleEdit"
+              @blur="saveTitleEdit"
+              ref="toolbarTitleInputRef"
+              autofocus
+            />
+          </span>
+          <span v-show="!editingTitle" class="current-title editable" @click="startTitleEdit">
+            {{ currentTitle || '未命名' }}
+          </span>
+          <el-select
+            v-model="textCategoryId"
+            placeholder="选择分类"
+            size="small"
+            clearable
+            class="category-select"
+          >
+            <el-option
+              v-for="cat in flatCategories"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.id"
+            />
+          </el-select>
         </div>
         <div class="toolbar-right">
-          <el-tooltip content="自动保存" placement="bottom">
+          <el-tooltip content="自动保存" placement="top" effect="light">
             <el-button :type="autoSaveEnabled ? 'primary' : 'default'" circle size="small" @click="toggleAutoSave">
               <el-icon><Timer /></el-icon>
             </el-button>
@@ -123,21 +163,19 @@
           </el-button>
           <el-divider direction="vertical" />
           <div class="view-mode-switch">
-            <el-button-group>
-              <el-tooltip content="仅编辑" placement="top">
-                <el-button :type="editorMode === 'edit' ? 'primary' : 'default'" @click="editorMode = 'edit'">
-                  <el-icon><Edit /></el-icon>
-                </el-button>
-              </el-tooltip>
-              <el-tooltip content="仅预览" placement="top">
-                <el-button :type="editorMode === 'preview' ? 'primary' : 'default'" @click="editorMode = 'preview'">
-                  <el-icon><View /></el-icon>
-                </el-button>
-              </el-tooltip>
-            </el-button-group>
-            <el-tooltip content="并排显示" placement="top">
+            <el-tooltip content="仅编辑" placement="top" effect="light">
+              <el-button :type="editorMode === 'edit' ? 'primary' : 'default'" @click="editorMode = 'edit'">
+                <el-icon><Edit /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="并排显示" placement="top" effect="light">
               <el-button :type="editorMode === 'split' ? 'primary' : 'default'" @click="editorMode = 'split'">
                 <el-icon><Histogram /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="仅预览" placement="top" effect="light">
+              <el-button :type="editorMode === 'preview' ? 'primary' : 'default'" @click="editorMode = 'preview'">
+                <el-icon><View /></el-icon>
               </el-button>
             </el-tooltip>
           </div>
@@ -178,7 +216,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, Search, Document, Histogram, View, Edit, Timer, Close } from '@element-plus/icons-vue'
+import { Plus, Delete, Search, Document, Histogram, View, Edit, Timer, Close, EditPen } from '@element-plus/icons-vue'
 import { MdEditor, MdPreview } from 'md-editor-v3'
 import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -193,6 +231,7 @@ import {
   updateTextCollectionApi,
   deleteTextCollectionApi,
   addTextCategoryApi,
+  updateTextCategoryApi,
   deleteTextCategoryApi,
   type TextCollectionAddReq,
   type TextCollectionUpdateReq,
@@ -210,7 +249,8 @@ const autoSaveEnabled = ref(false)
 const currentTextId = ref<number | null>(null)
 const currentTitle = ref('')
 const currentContent = ref('')
-const currentCategoryId = ref<number | null>(null)
+const currentCategoryId = ref<number | null>(null) // 侧边栏筛选用
+const textCategoryId = ref<number | null>(null) // 当前文本的分类
 const currentTags = ref<string[]>([])
 
 const texts = ref<TextCollectionItem[]>([])
@@ -233,6 +273,15 @@ const maxSidebarWidth = 500
 const editingTitleTextId = ref('')
 const editingTitleValue = ref('')
 const titleInputRef = ref()
+
+// 顶部工具栏标题编辑状态
+const editingTitle = ref(false)
+const toolbarTitleInputRef = ref()
+
+// 分类编辑状态
+const editingCategoryId = ref<number | null>(null)
+const editingCategoryName = ref('')
+const categoryEditInputRef = ref()
 
 const toolbars: ToolbarNames[] = [
   'bold',
@@ -438,11 +487,39 @@ async function handleDeleteCategory(data: TextCategory) {
     try {
       await deleteTextCategoryApi(data.id)
       await loadCategories()
+      if (currentCategoryId.value === data.id) {
+        currentCategoryId.value = null
+      }
       ElMessage.success('删除成功')
     } catch (e) {
       console.error(e)
     }
   })
+}
+
+function startCategoryEdit(cat: TextCategory) {
+  editingCategoryId.value = cat.id
+  editingCategoryName.value = cat.name
+  nextTick(() => {
+    categoryEditInputRef.value?.focus()
+  })
+}
+
+async function saveCategoryEdit(cat: TextCategory) {
+  if (!editingCategoryId.value) return
+  const name = editingCategoryName.value.trim()
+  if (!name) {
+    editingCategoryId.value = null
+    return
+  }
+  try {
+    await updateTextCategoryApi({ id: cat.id, name })
+    await loadCategories()
+    editingCategoryId.value = null
+    ElMessage.success('分类已更新')
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 function toggleAutoSave() {
@@ -458,7 +535,13 @@ function handleNewText() {
   currentTitle.value = ''
   currentContent.value = ''
   currentTags.value = []
-  currentCategoryId.value = null
+  textCategoryId.value = null
+  // 新建时立即进入标题编辑模式
+  nextTick(() => {
+    editingTitle.value = true
+    editingTitleValue.value = ''
+    toolbarTitleInputRef.value?.focus()
+  })
 }
 
 function handleSelectText(text: TextCollectionItem) {
@@ -469,19 +552,44 @@ function handleSelectText(text: TextCollectionItem) {
   currentTextId.value = text.id
   currentTitle.value = text.title
   currentContent.value = text.content
-  currentCategoryId.value = text.categoryId || null
+  textCategoryId.value = text.categoryId || null
   currentTags.value = getTextTags(text)
 }
 
-function startTitleEdit(text: TextCollectionItem) {
-  editingTitleTextId.value = text.id
-  editingTitleValue.value = text.title || ''
-  nextTick(() => {
-    titleInputRef.value?.focus()
-  })
+function startTitleEdit(text?: TextCollectionItem) {
+  if (text) {
+    editingTitleTextId.value = text.id
+    editingTitleValue.value = text.title || ''
+    nextTick(() => {
+      titleInputRef.value?.focus()
+    })
+  } else {
+    editingTitle.value = true
+    editingTitleValue.value = currentTitle.value || ''
+    nextTick(() => {
+      toolbarTitleInputRef.value?.focus()
+    })
+  }
 }
 
 function saveTitleEdit(text?: TextCollectionItem) {
+  if (editingTitle.value) {
+    // 保存顶部工具栏标题
+    editingTitle.value = false
+    currentTitle.value = editingTitleValue.value.trim() || '无标题'
+    if (currentTextId.value) {
+      updateTextCollectionApi({
+        id: currentTextId.value,
+        title: currentTitle.value,
+        content: currentContent.value,
+        categoryId: textCategoryId.value,
+        tags: currentTags.value.join(','),
+      } as any).catch(console.error)
+    }
+    editingTitleValue.value = ''
+    return
+  }
+
   if (!editingTitleTextId.value) return
 
   const targetText = text || texts.value.find(t => t.id === editingTitleTextId.value)
@@ -511,14 +619,14 @@ async function handleSave() {
         id: currentTextId.value,
         title: currentTitle.value,
         content: currentContent.value,
-        categoryId: currentCategoryId.value,
+        categoryId: textCategoryId.value,
         tags: currentTags.value.join(','),
       } as any)
     } else {
       const res = await addTextCollectionApi({
         title: currentTitle.value || '无标题',
         content: currentContent.value,
-        categoryId: currentCategoryId.value,
+        categoryId: textCategoryId.value,
         tags: currentTags.value.join(','),
       } as TextCollectionAddReq)
       currentTextId.value = res.data
@@ -546,14 +654,14 @@ function triggerAutoSave() {
           id: currentTextId.value,
           title: currentTitle.value,
           content: currentContent.value,
-          categoryId: currentCategoryId.value,
+          categoryId: textCategoryId.value,
           tags: currentTags.value.join(','),
         } as any)
       } else {
         const res = await addTextCollectionApi({
           title: currentTitle.value || '无标题',
           content: currentContent.value,
-          categoryId: currentCategoryId.value,
+          categoryId: textCategoryId.value,
           tags: currentTags.value.join(','),
         } as TextCollectionAddReq)
         currentTextId.value = res.data
@@ -770,6 +878,35 @@ onUnmounted(() => {
       color: var(--el-color-danger);
     }
   }
+
+  &-edit {
+    font-size: 10px;
+    margin-left: 2px;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 1;
+      color: var(--el-color-primary);
+    }
+  }
+
+  &-edit-wrapper {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &-edit-input {
+    width: 80px;
+
+    :deep(.el-input__wrapper) {
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    :deep(.el-input__inner) {
+      font-size: 12px;
+    }
+  }
 }
 
 .category-add-input {
@@ -910,7 +1047,43 @@ onUnmounted(() => {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      &.editable {
+        cursor: text;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+
+        &:hover {
+          background: var(--el-color-primary-light-9);
+          color: var(--el-color-primary);
+        }
+      }
     }
+
+    .current-title-edit-wrapper {
+      display: flex;
+      align-items: center;
+    }
+
+    .current-title-input {
+      width: 200px;
+
+      :deep(.el-input__wrapper) {
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+
+      :deep(.el-input__inner) {
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .category-select {
+    width: 140px;
+    margin-left: 12px;
   }
 
   .toolbar-right {
@@ -924,53 +1097,37 @@ onUnmounted(() => {
 .view-mode-switch {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0;
 
-  :deep(.el-button-group) {
-    .el-button {
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 6px 12px;
-
-      &:not(:last-child) {
-        border-right: none;
-      }
-
-      &:first-child {
-        border-radius: 6px 0 0 6px;
-      }
-
-      &:last-child {
-        border-radius: 0 6px 6px 0;
-      }
-
-      &:hover {
-        background: var(--el-color-primary-light-9);
-      }
-
-      &.el-button--primary {
-        background: var(--el-color-primary);
-        border-color: var(--el-color-primary);
-        color: var(--bg-primary);
-      }
-    }
+  :deep(.el-tooltip) {
+    display: flex;
   }
 
-  > .el-tooltip {
-    :deep(.el-button) {
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 6px 12px;
+  :deep(.el-button) {
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    padding: 6px 12px;
+    margin-left: -1px;
 
-      &:hover {
-        background: var(--el-color-primary-light-9);
-      }
+    &:first-child {
+      border-radius: 6px 0 0 6px;
+    }
 
-      &.el-button--primary {
-        background: var(--el-color-primary);
-        border-color: var(--el-color-primary);
-        color: var(--bg-primary);
-      }
+    &:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+
+    &:hover {
+      background: var(--el-color-primary-light-9);
+      z-index: 1;
+      position: relative;
+    }
+
+    &.el-button--primary {
+      background: var(--el-color-primary);
+      border-color: var(--el-color-primary);
+      color: #fff;
+      z-index: 1;
     }
   }
 }

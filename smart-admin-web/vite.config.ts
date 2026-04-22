@@ -60,6 +60,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/styles/variables.scss" as *;`,
+          api: 'modern-compiler',
         },
       },
     },

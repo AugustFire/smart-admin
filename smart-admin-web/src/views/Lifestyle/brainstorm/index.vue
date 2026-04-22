@@ -262,17 +262,11 @@
     <!-- 编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
+      :title="dialogTitle"
       width="520px"
       :close-on-click-modal="false"
-      class="brainstorm-dialog"
-      :show-close="false"
+      class="brainstorm-edit-dialog"
     >
-      <template #header>
-        <div class="dialog-header">
-          <span class="dialog-emoji">{{ isEdit ? '✏️' : '💡' }}</span>
-          <span class="dialog-title">{{ dialogTitle }}</span>
-        </div>
-      </template>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="内容" prop="content">
           <el-input
@@ -309,37 +303,14 @@
     <!-- 详情对话框 -->
     <el-dialog
       v-model="detailVisible"
+      :title="'想法详情'"
       width="600px"
-      class="brainstorm-dialog detail-dialog"
+      :close-on-click-modal="false"
+      class="detail-dialog"
     >
-      <template #header>
-        <div class="detail-header">
-          <span class="detail-emoji">{{ getTagEmoji(detailIdea?.tags[0]) }}</span>
-          <span class="detail-title">想法详情</span>
-          <div class="detail-tags" v-if="detailIdea?.tags.length">
-            <el-tag
-              v-for="tag in detailIdea?.tags"
-              :key="tag"
-              size="small"
-              :style="{ background: getTagColor(tag) + '18', borderColor: getTagColor(tag) + '50', color: getTagColor(tag) }"
-            >
-              {{ getTagLabel(tag) }}
-            </el-tag>
-          </div>
-        </div>
-      </template>
       <div class="detail-content">
         <p>{{ detailIdea?.content }}</p>
       </div>
-      <template #footer>
-        <div class="detail-footer">
-          <span class="detail-time">创建于 {{ detailIdea ? formatTime(detailIdea.createdAt) : '' }}</span>
-          <el-button type="primary" @click="handleEditFromDetail">
-            <el-icon><Edit /></el-icon>
-            编辑
-          </el-button>
-        </div>
-      </template>
     </el-dialog>
   </div>
 </template>
@@ -921,39 +892,18 @@ onMounted(() => {
   }
 }
 
-.detail-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  .detail-emoji {
-    font-size: 22px;
-    flex-shrink: 0;
-  }
-
-  .detail-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    flex-shrink: 0;
-  }
-
-  .detail-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    flex: 1;
-  }
-}
-
 .detail-content {
-  padding: 24px 0;
+  padding: 20px 0;
   font-size: 15px;
   line-height: 1.9;
   color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
   min-height: 120px;
+
+  p {
+    margin: 0;
+  }
 }
 
 .detail-footer {
@@ -1434,31 +1384,68 @@ onMounted(() => {
   }
 }
 
-// 详情弹窗 - 头部和关闭按钮对齐
-.detail-dialog {
-  :deep(.el-dialog__header) {
+// 详情弹窗
+:deep(.detail-dialog.el-dialog) {
+  .el-dialog__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    padding: 20px 40px 10px 20px;
+    justify-content: space-between;
     margin-right: 0;
-  }
 
-  :deep(.el-dialog__headerbtn) {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 16px;
-    width: 28px;
-    height: 28px;
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .el-dialog__headerbtn {
+      position: static;
+      top: auto;
+      right: auto;
+      font-size: 18px;
+
+      .el-dialog__close {
+        color: var(--text-secondary);
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
+    }
+  }
+}
+
+// 编辑弹窗
+:deep(.brainstorm-edit-dialog.el-dialog) {
+  .el-dialog__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0;
+    justify-content: space-between;
+    margin-right: 0;
 
-    .el-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .el-dialog__headerbtn {
+      position: static;
+      top: auto;
+      right: auto;
+      font-size: 18px;
+
+      .el-dialog__close {
+        color: var(--text-secondary);
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
     }
   }
 }

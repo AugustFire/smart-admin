@@ -264,6 +264,53 @@ export interface DatabaseAddReq {
 
 ## Element Plus 组件使用
 
+### 对话框（el-dialog）样式覆盖
+
+覆盖 el-dialog 样式时，选择器格式必须统一，否则关闭按钮无法正确对齐：
+
+```scss
+/* ❌ 错误：.detail-dialog 作为父级，el-dialog__headerbtn 用 absolute + transform 定位基准会错 */
+.detail-dialog {
+  :deep(.el-dialog__header) {
+    .el-dialog__headerbtn { ... }
+  }
+}
+
+/* ✅ 正确：使用 :deep(.xxx.el-dialog) 格式，与 Element Plus 内部选择器格式一致 */
+:deep(.detail-dialog.el-dialog) {
+  .el-dialog__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-right: 0;
+
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .el-dialog__headerbtn {
+      position: static;
+      top: auto;
+      right: auto;
+      font-size: 18px;
+
+      .el-dialog__close {
+        color: var(--text-secondary);
+        transition: color 0.2s;
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
+    }
+  }
+}
+```
+
+**原因**：Element Plus 内部 `.el-dialog__headerbtn` 关闭按钮使用 `position: absolute` + `transform: translateY(-50%)` 实现垂直居中。如果外层选择器格式不对，transform 的基准元素错误，导致关闭按钮垂直偏移。
+
 ### 表单
 
 ```vue

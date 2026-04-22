@@ -24,7 +24,7 @@ mvn clean package -DskipTests                   # 跳过测试打包
 ```
 
 ### 前端 (smart-admin-web)
-
+记住前端保证在3000端口启动，不要换其他端口，另外，vite hmr能热更新的不要重启!
 ```bash
 cd smart-admin-web && npm run dev    # 启动开发服务器
 npm run build                        # 构建生产版本

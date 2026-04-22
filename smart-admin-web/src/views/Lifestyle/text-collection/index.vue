@@ -393,9 +393,9 @@ function setupScrollSync() {
   // CodeMirror 的滚动容器是 .cm-scroller
   const editorScroller = editorEl.querySelector('.cm-scroller') as HTMLElement
   // 预览的滚动容器是 .preview-scroll-container（previewEl 的父元素）
-  const previewScrollEl = previewEl.parentElement as HTMLElement
+  const previewScroller = previewEl.parentElement as HTMLElement
 
-  if (!editorScroller || !previewScrollEl) return
+  if (!editorScroller || !previewScroller) return
 
   let isScrolling = false
 
@@ -404,22 +404,19 @@ function setupScrollSync() {
     isScrolling = true
 
     requestAnimationFrame(() => {
-      const sourceMax = source.scrollHeight - source.clientHeight
-      const targetMax = target.scrollHeight - target.clientHeight
-      if (sourceMax <= 0 || targetMax <= 0) {
-        isScrolling = false
-        return
-      }
+      const sourceScrollable = source.scrollHeight - source.clientHeight
+      const sourceRatio = source.scrollTop / (sourceScrollable || 1)
 
-      const ratio = source.scrollTop / sourceMax
+      // Clamp ratio between 0 and 1
+      const clampedRatio = Math.max(0, Math.min(1, sourceRatio))
 
-      // 如果源头已经滚到底，让目标也滚到底
-      if (ratio >= 0.99) {
-        target.scrollTop = targetMax
-      } else if (ratio <= 0.01) {
+      if (clampedRatio >= 0.99) {
+        target.scrollTop = target.scrollHeight - target.clientHeight
+      } else if (clampedRatio <= 0.01) {
         target.scrollTop = 0
       } else {
-        target.scrollTop = ratio * targetMax
+        const targetScrollable = target.scrollHeight - target.clientHeight
+        target.scrollTop = clampedRatio * targetScrollable
       }
       isScrolling = false
     })
@@ -427,13 +424,13 @@ function setupScrollSync() {
 
   editorScroller.addEventListener('scroll', () => {
     if (editorMode.value === 'split') {
-      syncScroll(editorScroller, previewScrollEl)
+      syncScroll(editorScroller, previewScroller)
     }
   }, { passive: true })
 
-  previewScrollEl.addEventListener('scroll', () => {
+  previewScroller.addEventListener('scroll', () => {
     if (editorMode.value === 'split') {
-      syncScroll(previewScrollEl, editorScroller)
+      syncScroll(previewScroller, editorScroller)
     }
   }, { passive: true })
 }
@@ -1217,16 +1214,18 @@ onUnmounted(() => {
 .preview-scroll-container {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
 
   :deep(.md-editor-preview) {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     box-sizing: border-box;
     overflow-y: auto;
     background: var(--bg-secondary);
+    padding: 20px;
   }
 }
 

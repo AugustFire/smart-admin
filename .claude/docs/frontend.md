@@ -311,6 +311,50 @@ export interface DatabaseAddReq {
 
 **原因**：Element Plus 内部 `.el-dialog__headerbtn` 关闭按钮使用 `position: absolute` + `transform: translateY(-50%)` 实现垂直居中。如果外层选择器格式不对，transform 的基准元素错误，导致关闭按钮垂直偏移。
 
+### 嵌套滚动容器的布局
+
+嵌套 flex 布局中，如果内层容器内容超出无法滚动，常见原因和解决方案：
+
+**问题**：父容器 flex + overflow + 子容器 height: 100% 组合时，内层 div 可能撑满父容器高度，导致内容被裁剪无法滚动。
+
+**错误示例**：
+```scss
+.outer-container {
+  flex: 1;
+  overflow-y: auto;  // 外层滚动
+  display: flex;
+  flex-direction: column;
+
+  .inner-content {
+    height: 100%;      // 错误：撑满父容器，内容被裁剪
+    overflow-y: auto;
+  }
+}
+```
+
+**正确示例**：
+```scss
+.outer-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;   // 外层不滚动
+  display: flex;
+  flex-direction: column;
+
+  .inner-content {
+    flex: 1;
+    min-height: 0;     // 关键：允许收缩以适应空间
+    overflow-y: auto;  // 内层滚动
+    padding: 20px;
+  }
+}
+```
+
+**关键点**：
+- 外层 `overflow: hidden` 防止自身滚动
+- 内层 `flex: 1` + `min-height: 0` 让内容区自动扩展高度
+- 内层 `overflow-y: auto` 提供滚动能力
+
 ### 表单
 
 ```vue
@@ -413,22 +457,6 @@ export interface DatabaseAddReq {
     </template>
   </el-dialog>
 </template>
-```
-
-## 常用命令
-
-```bash
-# 启动开发服务器
-cd smart-admin-web && npm run dev
-
-# 构建生产版本
-npm run build
-
-# 预览构建结果
-npm run preview
-
-# 代码检查
-npm run lint
 ```
 
 ## 开发环境

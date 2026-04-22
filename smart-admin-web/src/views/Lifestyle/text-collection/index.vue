@@ -200,7 +200,7 @@
           <div class="preview-toolbar">
             <span class="preview-label">预览</span>
           </div>
-          <div class="preview-scroll-container">
+          <div class="preview-scroll-container" :class="{ 'preview-mode': editorMode === 'preview' }">
             <MdPreview
               ref="previewRef"
               :model-value="currentContent"
@@ -1218,6 +1218,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
+
+  &.preview-mode {
+    overflow-y: auto;
+  }
 
   :deep(.md-editor-preview) {
     flex: 1;

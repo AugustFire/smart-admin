@@ -26,7 +26,7 @@
           <span
             class="category-tab"
             :class="{ active: !currentCategoryId }"
-            @click="currentCategoryId = ''"
+            @click="currentCategoryId = null"
           >
             全部
           </span>
@@ -86,7 +86,7 @@
             </div>
             <div class="text-item-meta">
               <el-tag v-if="getCategoryName(text.categoryId)" size="small">{{ getCategoryName(text.categoryId) }}</el-tag>
-              <span class="text-item-date">{{ formatDate(text.updatedAt) }}</span>
+              <span class="text-item-date">{{ formatDate(text.updateTime) }}</span>
             </div>
           </div>
           <el-button link type="danger" size="small" class="text-item-delete" @click.stop="handleDeleteText(text)">
@@ -123,19 +123,21 @@
           </el-button>
           <el-divider direction="vertical" />
           <div class="view-mode-switch">
-            <el-tooltip content="仅编辑" placement="top">
-              <el-button :type="editorMode === 'edit' ? 'primary' : 'default'" size="small" @click="editorMode = 'edit'">
-                <el-icon><Edit /></el-icon>
-              </el-button>
-            </el-tooltip>
+            <el-button-group>
+              <el-tooltip content="仅编辑" placement="top">
+                <el-button :type="editorMode === 'edit' ? 'primary' : 'default'" @click="editorMode = 'edit'">
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="仅预览" placement="top">
+                <el-button :type="editorMode === 'preview' ? 'primary' : 'default'" @click="editorMode = 'preview'">
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </el-tooltip>
+            </el-button-group>
             <el-tooltip content="并排显示" placement="top">
-              <el-button :type="editorMode === 'split' ? 'primary' : 'default'" size="small" @click="editorMode = 'split'">
+              <el-button :type="editorMode === 'split' ? 'primary' : 'default'" @click="editorMode = 'split'">
                 <el-icon><Histogram /></el-icon>
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="仅预览" placement="top">
-              <el-button :type="editorMode === 'preview' ? 'primary' : 'default'" size="small" @click="editorMode = 'preview'">
-                <el-icon><View /></el-icon>
               </el-button>
             </el-tooltip>
           </div>
@@ -181,11 +183,21 @@ import { MdEditor, MdPreview } from 'md-editor-v3'
 import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import 'md-editor-v3/lib/preview.css'
+import { formatTags } from '@/utils/tag'
 import dayjs from 'dayjs'
 import type { TextCollectionItem, TextCategory } from '@/api/lifestyle/text-collection'
-
-const STORAGE_KEY_TEXTS = 'text_collection_texts'
-const STORAGE_KEY_CATEGORIES = 'text_collection_categories'
+import {
+  getTextCollectionPageApi,
+  getTextCategoryFlatApi,
+  addTextCollectionApi,
+  updateTextCollectionApi,
+  deleteTextCollectionApi,
+  addTextCategoryApi,
+  deleteTextCategoryApi,
+  type TextCollectionAddReq,
+  type TextCollectionUpdateReq,
+  type TextCategoryAddReq,
+} from '@/api/lifestyle/text-collection'
 
 const editorId = 'text-collection-editor'
 
@@ -195,10 +207,10 @@ const showCategoryInput = ref(false)
 const categoryInputRef = ref()
 const autoSaveEnabled = ref(false)
 
-const currentTextId = ref('')
+const currentTextId = ref<number | null>(null)
 const currentTitle = ref('')
 const currentContent = ref('')
-const currentCategoryId = ref('')
+const currentCategoryId = ref<number | null>(null)
 const currentTags = ref<string[]>([])
 
 const texts = ref<TextCollectionItem[]>([])
@@ -209,6 +221,7 @@ const editorMode = ref<'edit' | 'split' | 'preview'>('split')
 const splitRatio = ref(50)
 const editorRef = ref<InstanceType<typeof MdEditor>>()
 const previewRef = ref<InstanceType<typeof MdPreview>>()
+const loading = ref(false)
 let isResizing = false
 let isSidebarResizing = false
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -259,15 +272,8 @@ const filteredTexts = computed(() => {
 })
 
 const flatCategories = computed(() => {
-  const result: TextCategory[] = []
-  const flatten = (cats: TextCategory[]) => {
-    for (const cat of cats) {
-      result.push(cat)
-      if (cat.children) flatten(cat.children)
-    }
-  }
-  flatten(categories.value)
-  return result
+  // API returns flat list directly
+  return categories.value
 })
 
 const editorPaneStyle = computed(() => {
@@ -383,7 +389,11 @@ function setupScrollSync() {
   }, { passive: true })
 }
 
-function getCategoryName(categoryId?: string) {
+function getTextTags(text: TextCollectionItem): string[] {
+  return formatTags(text.tags)
+}
+
+function getCategoryName(categoryId?: number) {
   if (!categoryId) return ''
   const findCategory = (cats: TextCategory[]): TextCategory | undefined => {
     for (const cat of cats) {
@@ -397,23 +407,24 @@ function getCategoryName(categoryId?: string) {
   return findCategory(categories.value)?.name || ''
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | undefined) {
+  if (!dateStr) return ''
   return dayjs(dateStr).format('MM-DD HH:mm')
 }
 
-function handleAddCategory() {
+async function handleAddCategory() {
   const name = newCategoryName.value.trim()
   if (!name) return
 
-  categories.value.push({
-    id: Date.now().toString(),
-    name,
-    children: [],
-  })
-  saveCategories()
-  newCategoryName.value = ''
-  showCategoryInput.value = false
-  ElMessage.success('分类已创建')
+  try {
+    await addTextCategoryApi({ name } as TextCategoryAddReq)
+    await loadCategories()
+    newCategoryName.value = ''
+    showCategoryInput.value = false
+    ElMessage.success('分类已创建')
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 function handleCategoryInputBlur() {
@@ -422,22 +433,15 @@ function handleCategoryInputBlur() {
   }
 }
 
-function handleDeleteCategory(data: TextCategory) {
-  ElMessageBox.confirm(`确认删除分类「${data.name}」吗？`, '提示', { type: 'warning' }).then(() => {
-    const deleteFromTree = (cats: TextCategory[]) => {
-      const idx = cats.findIndex(c => c.id === data.id)
-      if (idx >= 0) {
-        cats.splice(idx, 1)
-        return true
-      }
-      for (const cat of cats) {
-        if (cat.children && deleteFromTree(cat.children)) return true
-      }
-      return false
+async function handleDeleteCategory(data: TextCategory) {
+  ElMessageBox.confirm(`确认删除分类「${data.name}」吗？`, '提示', { type: 'warning' }).then(async () => {
+    try {
+      await deleteTextCategoryApi(data.id)
+      await loadCategories()
+      ElMessage.success('删除成功')
+    } catch (e) {
+      console.error(e)
     }
-    deleteFromTree(categories.value)
-    saveCategories()
-    ElMessage.success('删除成功')
   })
 }
 
@@ -450,11 +454,11 @@ function toggleAutoSave() {
 }
 
 function handleNewText() {
-  currentTextId.value = ''
+  currentTextId.value = null
   currentTitle.value = ''
   currentContent.value = ''
   currentTags.value = []
-  // Keep currentCategoryId if user is filtering - this helps organize new text
+  currentCategoryId.value = null
 }
 
 function handleSelectText(text: TextCollectionItem) {
@@ -465,7 +469,8 @@ function handleSelectText(text: TextCollectionItem) {
   currentTextId.value = text.id
   currentTitle.value = text.title
   currentContent.value = text.content
-  currentTags.value = text.tags || []
+  currentCategoryId.value = text.categoryId || null
+  currentTags.value = getTextTags(text)
 }
 
 function startTitleEdit(text: TextCollectionItem) {
@@ -482,43 +487,47 @@ function saveTitleEdit(text?: TextCollectionItem) {
   const targetText = text || texts.value.find(t => t.id === editingTitleTextId.value)
   if (targetText && editingTitleValue.value !== undefined) {
     targetText.title = editingTitleValue.value.trim() || '无标题'
-    saveTexts()
+    updateTextCollectionApi({
+      id: targetText.id,
+      title: targetText.title,
+      content: targetText.content,
+      categoryId: targetText.categoryId,
+      tags: targetText.tags,
+    } as any).catch(console.error)
   }
   editingTitleTextId.value = ''
   editingTitleValue.value = ''
 }
 
-function handleSave() {
+async function handleSave() {
   if (!currentContent.value.trim()) {
     ElMessage.warning('内容不能为空')
     return
   }
 
-  if (currentTextId.value) {
-    const text = texts.value.find(t => t.id === currentTextId.value)
-    if (text) {
-      text.title = currentTitle.value
-      text.content = currentContent.value
-      text.categoryId = currentCategoryId.value
-      text.tags = currentTags.value
-      text.updatedAt = new Date().toISOString()
+  try {
+    if (currentTextId.value) {
+      await updateTextCollectionApi({
+        id: currentTextId.value,
+        title: currentTitle.value,
+        content: currentContent.value,
+        categoryId: currentCategoryId.value,
+        tags: currentTags.value.join(','),
+      } as any)
+    } else {
+      const res = await addTextCollectionApi({
+        title: currentTitle.value || '无标题',
+        content: currentContent.value,
+        categoryId: currentCategoryId.value,
+        tags: currentTags.value.join(','),
+      } as TextCollectionAddReq)
+      currentTextId.value = res.data
     }
-  } else {
-    const newText: TextCollectionItem = {
-      id: Date.now().toString(),
-      title: currentTitle.value || '无标题',
-      content: currentContent.value,
-      categoryId: currentCategoryId.value,
-      tags: currentTags.value,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    texts.value.unshift(newText)
-    currentTextId.value = newText.id
+    await loadTexts()
+    ElMessage.success('保存成功')
+  } catch (e) {
+    console.error(e)
   }
-
-  saveTexts()
-  ElMessage.success('保存成功')
 }
 
 // 自动保存（防抖 30 秒）
@@ -526,37 +535,36 @@ function triggerAutoSave() {
   if (autoSaveTimer) clearTimeout(autoSaveTimer)
   if (!currentContent.value.trim()) return
 
-  autoSaveTimer = setTimeout(() => {
+  autoSaveTimer = setTimeout(async () => {
     if (!currentContent.value.trim()) return
 
     isAutoSaving.value = true
 
-    if (currentTextId.value) {
-      const text = texts.value.find(t => t.id === currentTextId.value)
-      if (text) {
-        text.title = currentTitle.value
-        text.content = currentContent.value
-        text.categoryId = currentCategoryId.value
-        text.tags = currentTags.value
-        text.updatedAt = new Date().toISOString()
+    try {
+      if (currentTextId.value) {
+        await updateTextCollectionApi({
+          id: currentTextId.value,
+          title: currentTitle.value,
+          content: currentContent.value,
+          categoryId: currentCategoryId.value,
+          tags: currentTags.value.join(','),
+        } as any)
+      } else {
+        const res = await addTextCollectionApi({
+          title: currentTitle.value || '无标题',
+          content: currentContent.value,
+          categoryId: currentCategoryId.value,
+          tags: currentTags.value.join(','),
+        } as TextCollectionAddReq)
+        currentTextId.value = res.data
       }
-    } else {
-      const newText: TextCollectionItem = {
-        id: Date.now().toString(),
-        title: currentTitle.value || '无标题',
-        content: currentContent.value,
-        categoryId: currentCategoryId.value,
-        tags: currentTags.value,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-      texts.value.unshift(newText)
-      currentTextId.value = newText.id
+      lastSavedAt.value = '刚刚'
+      await loadTexts()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isAutoSaving.value = false
     }
-
-    saveTexts()
-    lastSavedAt.value = '刚刚'
-    isAutoSaving.value = false
 
     // 2分钟后清除提示
     setTimeout(() => {
@@ -575,48 +583,46 @@ function formatLastSaveTime(date: Date) {
   return dayjs(date).format('HH:mm')
 }
 
-function handleDeleteText(text: TextCollectionItem) {
-  ElMessageBox.confirm(`确认删除「${text.title || '无标题'}」吗？`, '提示', { type: 'warning' }).then(() => {
-    texts.value = texts.value.filter(t => t.id !== text.id)
-    if (currentTextId.value === text.id) {
-      currentTextId.value = ''
-      currentTitle.value = ''
-      currentContent.value = ''
+async function handleDeleteText(text: TextCollectionItem) {
+  ElMessageBox.confirm(`确认删除「${text.title || '无标题'}」吗？`, '提示', { type: 'warning' }).then(async () => {
+    try {
+      await deleteTextCollectionApi(text.id)
+      await loadTexts()
+      if (currentTextId.value === text.id) {
+        currentTextId.value = null
+        currentTitle.value = ''
+        currentContent.value = ''
+      }
+      ElMessage.success('删除成功')
+    } catch (e) {
+      console.error(e)
     }
-    saveTexts()
-    ElMessage.success('删除成功')
   })
 }
 
-function loadTexts() {
+async function loadTexts() {
+  loading.value = true
   try {
-    const data = localStorage.getItem(STORAGE_KEY_TEXTS)
-    if (data) texts.value = JSON.parse(data)
+    const params: any = {}
+    if (currentCategoryId.value) {
+      params.categoryId = currentCategoryId.value
+    }
+    if (searchKeyword.value) {
+      params.keyword = searchKeyword.value
+    }
+    const res = await getTextCollectionPageApi(params)
+    texts.value = res.data.list || []
   } catch (e) {
     console.error(e)
+  } finally {
+    loading.value = false
   }
 }
 
-function saveTexts() {
+async function loadCategories() {
   try {
-    localStorage.setItem(STORAGE_KEY_TEXTS, JSON.stringify(texts.value))
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-function loadCategories() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY_CATEGORIES)
-    if (data) categories.value = JSON.parse(data)
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-function saveCategories() {
-  try {
-    localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories.value))
+    const res = await getTextCategoryFlatApi()
+    categories.value = res.data || []
   } catch (e) {
     console.error(e)
   }
@@ -629,9 +635,8 @@ watch([currentContent, currentTitle], () => {
   }
 })
 
-onMounted(() => {
-  loadTexts()
-  loadCategories()
+onMounted(async () => {
+  await Promise.all([loadTexts(), loadCategories()])
   setTimeout(() => {
     setupScrollSync()
   }, 500)
@@ -919,35 +924,53 @@ onUnmounted(() => {
 .view-mode-switch {
   display: flex;
   align-items: center;
-  background: var(--bg-secondary);
-  border-radius: 20px;
-  padding: 2px;
+  gap: 4px;
 
-  :deep(.el-button) {
-    border: none;
-    border-radius: 0;
-    padding: 6px 10px;
-    background: transparent;
+  :deep(.el-button-group) {
+    .el-button {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 12px;
 
-    &:first-child {
-      border-radius: 18px 0 0 18px;
+      &:not(:last-child) {
+        border-right: none;
+      }
+
+      &:first-child {
+        border-radius: 6px 0 0 6px;
+      }
+
+      &:last-child {
+        border-radius: 0 6px 6px 0;
+      }
+
+      &:hover {
+        background: var(--el-color-primary-light-9);
+      }
+
+      &.el-button--primary {
+        background: var(--el-color-primary);
+        border-color: var(--el-color-primary);
+        color: var(--bg-primary);
+      }
     }
+  }
 
-    &:last-child {
-      border-radius: 0 18px 18px 0;
-    }
+  > .el-tooltip {
+    :deep(.el-button) {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 12px;
 
-    &:not(:first-child):not(:last-child) {
-      border-radius: 0;
-    }
+      &:hover {
+        background: var(--el-color-primary-light-9);
+      }
 
-    &:hover {
-      background: var(--el-color-primary-light-9);
-    }
-
-    &.el-button--primary {
-      background: var(--el-color-primary);
-      color: var(--bg-primary);
+      &.el-button--primary {
+        background: var(--el-color-primary);
+        border-color: var(--el-color-primary);
+        color: var(--bg-primary);
+      }
     }
   }
 }
@@ -994,14 +1017,16 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: width 0.1s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   overflow: hidden;
+  opacity: 1;
 }
 
 .preview-toolbar {
   padding: 8px 16px;
   border-bottom: 1px solid var(--border-color-light);
   background: var(--bg-secondary);
+  border-left: 3px solid var(--el-color-primary-light-5);
   flex-shrink: 0;
   height: 40px;
   box-sizing: border-box;
@@ -1038,11 +1063,13 @@ onUnmounted(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background: var(--bg-secondary);
 
   :deep(.md-editor-preview) {
     height: 100%;
     box-sizing: border-box;
     overflow-y: auto;
+    background: var(--bg-secondary);
   }
 }
 

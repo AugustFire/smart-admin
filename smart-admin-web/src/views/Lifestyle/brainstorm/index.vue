@@ -56,7 +56,13 @@
       />
       <div class="input-footer">
         <div class="tag-group">
-          <el-tooltip v-for="tag in presetTags" :key="tag.value" :content="tag.description" placement="top">
+          <el-tooltip
+            v-for="tag in presetTags"
+            :key="tag.value"
+            :content="tag.description"
+            placement="top"
+            effect="light"
+          >
             <el-check-tag
               :checked="selectedTags.includes(tag.value)"
               @change="toggleTag(tag.value)"
@@ -113,8 +119,19 @@
 
     <!-- 卡片视图 -->
     <div v-if="viewMode === 'card'" class="card-view">
-      <div v-if="groupedIdeas.length === 0" class="empty-state">
-        <el-empty description="暂无想法，记录你的第一个灵感吧" />
+      <div v-if="ideas.length === 0" class="empty-state">
+        <el-empty description="暂无想法，记录你的第一个灵感吧">
+          <template #image>
+            <span style="font-size: 48px">💡</span>
+          </template>
+        </el-empty>
+      </div>
+      <div v-else-if="groupedIdeas.length === 0" class="empty-state">
+        <el-empty description="未找到匹配的想法，试试其他筛选条件">
+          <template #image>
+            <span style="font-size: 48px">🔍</span>
+          </template>
+        </el-empty>
       </div>
       <div v-else class="card-groups">
         <div v-for="group in groupedIdeas" :key="group.label" class="card-group">
@@ -131,30 +148,40 @@
               :key="idea.id"
               class="idea-card"
               :class="{ 'is-new': newlyAddedId === idea.id }"
+              @dblclick="handleOpenDetail(idea)"
             >
-              <div class="card-glow" :style="{ background: `linear-gradient(135deg, ${getTagColor(idea.tags[0])}22 0%, transparent 60%)` }"></div>
-              <div class="card-inner">
-                <div class="card-content">{{ idea.content }}</div>
-                <div v-if="idea.tags.length" class="card-tags">
+              <div class="card-glow" :style="{ background: `linear-gradient(135deg, ${getTagColor(getFirstTag(idea))}22 0%, transparent 60%)` }"></div>
+              <div class="card-inner" :style="{ '--tag-color': getTagColor(getFirstTag(idea)) }">
+                <div class="card-header">
+                  <span class="card-emoji">{{ getTagEmoji(getFirstTag(idea)) }}</span>
+                  <div class="card-actions">
+                    <el-button class="card-action-btn" link type="primary" @click.stop="handleEdit(idea)">
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                    <el-button class="card-action-btn" link type="danger" @click.stop="handleDelete(idea)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <span v-if="idea.content.length > 100 && !expandedIds.includes(idea.id)">
+                    {{ idea.content.slice(0, 100) }}...
+                    <span class="expand-btn" @click.stop="expandedIds.push(idea.id)">展开</span>
+                  </span>
+                  <span v-else>{{ idea.content }}</span>
+                </div>
+                <div v-if="getIdeaTags(idea).length" class="card-tags">
                   <el-tag
-                    v-for="tag in idea.tags"
+                    v-for="tag in getIdeaTags(idea)"
                     :key="tag"
                     size="small"
-                    :style="{ background: getTagColor(tag) + '20', borderColor: getTagColor(tag), color: getTagColor(tag) }"
+                    :style="{ background: getTagColor(tag) + '18', borderColor: getTagColor(tag) + '50', color: getTagColor(tag), fontWeight: 600 }"
                   >
                     {{ getTagLabel(tag) }}
                   </el-tag>
                 </div>
                 <div class="card-footer">
-                  <span class="card-time">{{ formatTime(idea.createdAt) }}</span>
-                  <div class="card-actions">
-                    <el-button link type="primary" @click="handleEdit(idea)">
-                      <el-icon><Edit /></el-icon>
-                    </el-button>
-                    <el-button link type="danger" @click="handleDelete(idea)">
-                      <el-icon><Delete /></el-icon>
-                    </el-button>
-                  </div>
+                  <span class="card-time">{{ formatTime(idea.createTime) }}</span>
                 </div>
               </div>
             </div>
@@ -165,8 +192,19 @@
 
     <!-- 时间线视图 -->
     <div v-else class="timeline-view">
-      <div v-if="groupedIdeas.length === 0" class="empty-state">
-        <el-empty description="暂无想法，记录你的第一个灵感吧" />
+      <div v-if="ideas.length === 0" class="empty-state">
+        <el-empty description="暂无想法，记录你的第一个灵感吧">
+          <template #image>
+            <span style="font-size: 48px">💡</span>
+          </template>
+        </el-empty>
+      </div>
+      <div v-else-if="groupedIdeas.length === 0" class="empty-state">
+        <el-empty description="未找到匹配的想法，试试其他筛选条件">
+          <template #image>
+            <span style="font-size: 48px">🔍</span>
+          </template>
+        </el-empty>
       </div>
       <div v-else class="timeline-groups">
         <div v-for="group in groupedIdeas" :key="group.label" class="timeline-group">
@@ -184,7 +222,7 @@
               class="timeline-row"
             >
               <div class="row-line">
-                <div class="row-dot" :style="{ background: getTagColor(idea.tags[0]) }">
+                <div class="row-dot" :style="{ background: getTagColor(getFirstTag(idea)) }">
                   💡
                 </div>
                 <div v-if="idx < group.items.length - 1" class="row-connector"></div>
@@ -193,7 +231,7 @@
                 <div class="row-header">
                   <div class="row-tags">
                     <el-tag
-                      v-for="tag in idea.tags"
+                      v-for="tag in getIdeaTags(idea)"
                       :key="tag"
                       size="small"
                       :style="{ background: getTagColor(tag) + '20', borderColor: getTagColor(tag), color: getTagColor(tag) }"
@@ -212,7 +250,7 @@
                 </div>
                 <div class="row-content-text">{{ idea.content }}</div>
                 <div class="row-footer">
-                  <span class="row-time">{{ formatTime(idea.createdAt) }}</span>
+                  <span class="row-time">{{ formatTime(idea.createTime) }}</span>
                 </div>
               </div>
             </div>
@@ -223,12 +261,18 @@
 
     <!-- 编辑对话框 -->
     <el-dialog
-      :title="dialogTitle"
       v-model="dialogVisible"
       width="520px"
       :close-on-click-modal="false"
       class="brainstorm-dialog"
+      :show-close="false"
     >
+      <template #header>
+        <div class="dialog-header">
+          <span class="dialog-emoji">{{ isEdit ? '✏️' : '💡' }}</span>
+          <span class="dialog-title">{{ dialogTitle }}</span>
+        </div>
+      </template>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="内容" prop="content">
           <el-input
@@ -256,14 +300,44 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-if="isEdit" type="danger" plain @click="handleDeleteFromDialog">
-            <el-icon><Delete /></el-icon>
-            删除
-          </el-button>
-          <div class="footer-right">
-            <el-button @click="dialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="submitForm">保存</el-button>
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">保存</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 详情对话框 -->
+    <el-dialog
+      v-model="detailVisible"
+      width="600px"
+      class="brainstorm-dialog detail-dialog"
+    >
+      <template #header>
+        <div class="detail-header">
+          <span class="detail-emoji">{{ getTagEmoji(detailIdea?.tags[0]) }}</span>
+          <span class="detail-title">想法详情</span>
+          <div class="detail-tags" v-if="detailIdea?.tags.length">
+            <el-tag
+              v-for="tag in detailIdea?.tags"
+              :key="tag"
+              size="small"
+              :style="{ background: getTagColor(tag) + '18', borderColor: getTagColor(tag) + '50', color: getTagColor(tag) }"
+            >
+              {{ getTagLabel(tag) }}
+            </el-tag>
           </div>
+        </div>
+      </template>
+      <div class="detail-content">
+        <p>{{ detailIdea?.content }}</p>
+      </div>
+      <template #footer>
+        <div class="detail-footer">
+          <span class="detail-time">创建于 {{ detailIdea ? formatTime(detailIdea.createdAt) : '' }}</span>
+          <el-button type="primary" @click="handleEditFromDetail">
+            <el-icon><Edit /></el-icon>
+            编辑
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -271,16 +345,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Plus, Edit, Delete, Search, ArrowDown } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Search, ArrowDown, Close } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import type { BrainstormItem } from '@/api/lifestyle/brainstorm'
-import DateRangePicker from '@/components/DateRangePicker/index.vue'
+import { getBrainstormPageApi, addBrainstormApi, updateBrainstormApi, deleteBrainstormApi, type BrainstormItem } from '@/api/lifestyle/brainstorm'
+import { formatTags } from '@/utils/tag'
 
-const STORAGE_KEY = 'brainstorm_ideas'
-
-const dateRange = ref<string[]>([])
+const loading = ref(false)
+const dateRange = ref<string[]>([
+  dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
+  dayjs().format('YYYY-MM-DD')
+])
 const searchKeyword = ref('')
 const filterTag = ref('')
 const viewMode = ref<'card' | 'timeline'>('card')
@@ -289,10 +365,13 @@ const selectedTags = ref<string[]>([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const isAdding = ref(false)
-const editingId = ref('')
+const editingId = ref<number | ''>('')
 const formRef = ref<FormInstance>()
 const ideas = ref<BrainstormItem[]>([])
-const newlyAddedId = ref('')
+const newlyAddedId = ref<number | ''>('')
+const detailVisible = ref(false)
+const detailIdea = ref<BrainstormItem | null>(null)
+const expandedIds = ref<number[]>([])
 
 const form = ref<{ content: string; tags: string[] }>({
   content: '',
@@ -304,11 +383,11 @@ const rules: FormRules = {
 }
 
 const presetTags = [
-  { label: '工作', value: 'work', color: '#3b82f6', description: '与工作相关的事务' },
-  { label: '生活', value: 'life', color: '#10b981', description: '日常生活中的点滴' },
-  { label: '学习', value: 'study', color: '#8b5cf6', description: '学习心得与计划' },
-  { label: '创意', value: 'creative', color: '#f59e0b', description: '创意灵感与想法' },
-  { label: '灵感', value: 'idea', color: '#ec4899', description: '突然想到的好点子' },
+  { label: '工作', value: 'work', color: '#3b82f6', emoji: '💼', description: '与工作相关的事务' },
+  { label: '生活', value: 'life', color: '#10b981', emoji: '🌱', description: '日常生活中的点滴' },
+  { label: '学习', value: 'study', color: '#8b5cf6', emoji: '📚', description: '学习心得与计划' },
+  { label: '创意', value: 'creative', color: '#f59e0b', emoji: '💡', description: '创意灵感与想法' },
+  { label: '灵感', value: 'idea', color: '#ec4899', emoji: '✨', description: '突然想到的好点子' },
 ]
 
 const tagColorMap = Object.fromEntries(presetTags.map(t => [t.value, t.color]))
@@ -344,6 +423,21 @@ function getTagLabel(tag?: string) {
   return tag ? tagLabelMap.value[tag] || tag : ''
 }
 
+const tagEmojiMap = Object.fromEntries(presetTags.map(t => [t.value, t.emoji]))
+
+function getTagEmoji(tag?: string) {
+  return tag ? tagEmojiMap[tag] || '💡' : '💡'
+}
+
+function getIdeaTags(idea: BrainstormItem): string[] {
+  return formatTags(idea.tags)
+}
+
+function getFirstTag(idea: BrainstormItem): string {
+  const tags = getIdeaTags(idea)
+  return tags[0] || ''
+}
+
 const filteredIdeas = computed(() => {
   let result = ideas.value
 
@@ -353,13 +447,13 @@ const filteredIdeas = computed(() => {
   }
 
   if (filterTag.value) {
-    result = result.filter(i => i.tags.includes(filterTag.value))
+    result = result.filter(i => i.tags && i.tags.includes(filterTag.value))
   }
 
   if (dateRange.value && dateRange.value.length === 2) {
     const [start, end] = dateRange.value
     result = result.filter(i => {
-      const date = i.createdAt.split('T')[0]
+      const date = i.createTime.split('T')[0]
       return date >= start && date <= end
     })
   }
@@ -381,7 +475,7 @@ const groupedIdeas = computed(() => {
   }
 
   for (const idea of filteredIdeas.value) {
-    const date = idea.createdAt.split('T')[0]
+    const date = idea.createTime.split('T')[0]
     if (date === today) {
       groups.today.items.push(idea)
     } else if (date === yesterday) {
@@ -398,12 +492,12 @@ const groupedIdeas = computed(() => {
 
 const todayCount = computed(() => {
   const today = dayjs().format('YYYY-MM-DD')
-  return ideas.value.filter(i => i.createdAt.startsWith(today)).length
+  return ideas.value.filter(i => i.createTime.startsWith(today)).length
 })
 
 const weekCount = computed(() => {
   const weekStart = dayjs().startOf('week').format('YYYY-MM-DD')
-  return ideas.value.filter(i => i.createdAt >= weekStart).length
+  return ideas.value.filter(i => i.createTime >= weekStart).length
 })
 
 function formatTime(dateStr: string) {
@@ -437,37 +531,38 @@ function toggleFormTag(tag: string) {
   }
 }
 
-function handleQuickAdd() {
+async function handleQuickAdd() {
   if (!quickInput.value.trim()) return
 
   isAdding.value = true
 
-  const idea: BrainstormItem = {
-    id: Date.now().toString(),
-    content: quickInput.value.trim(),
-    tags: [...selectedTags.value],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-
-  ideas.value.unshift(idea)
-  saveToStorage()
-  quickInput.value = ''
-  selectedTags.value = []
-
-  // 滚动到顶部并高亮新卡片
-  newlyAddedId.value = idea.id
-  nextTick(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    setTimeout(() => {
-      newlyAddedId.value = ''
-    }, 2000)
-  })
-
-  setTimeout(() => {
-    isAdding.value = false
+  try {
+    const tagsStr = selectedTags.value.join(',')
+    const { data } = await addBrainstormApi({
+      content: quickInput.value.trim(),
+      tags: tagsStr
+    })
+    // 重新加载数据
+    await fetchData()
+    quickInput.value = ''
+    selectedTags.value = []
     ElMessage.success('灵感已记录 ✨')
-  }, 300)
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isAdding.value = false
+  }
+}
+
+function handleOpenDetail(idea: BrainstormItem) {
+  detailIdea.value = idea
+  detailVisible.value = true
+}
+
+function handleEditFromDetail() {
+  if (!detailIdea.value) return
+  detailVisible.value = false
+  handleEdit(detailIdea.value)
 }
 
 function handleEdit(idea: BrainstormItem) {
@@ -475,87 +570,85 @@ function handleEdit(idea: BrainstormItem) {
   editingId.value = idea.id
   form.value = {
     content: idea.content,
-    tags: [...idea.tags],
+    tags: formatTags(idea.tags),
   }
   dialogVisible.value = true
 }
 
-function handleDelete(idea: BrainstormItem) {
-  ElMessageBox.confirm('确认删除这条想法吗？', '提示', { type: 'warning' }).then(() => {
-    ideas.value = ideas.value.filter(i => i.id !== idea.id)
-    saveToStorage()
+async function handleDelete(idea: BrainstormItem) {
+  try {
+    await ElMessageBox.confirm('确认删除这条想法吗？', '提示', { type: 'warning' })
+    await deleteBrainstormApi(idea.id)
+    await fetchData()
     ElMessage.success('删除成功')
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(error)
+    }
+  }
 }
 
-function submitForm() {
+async function submitForm() {
   if (!formRef.value) return
-  formRef.value.validate((valid) => {
-    if (!valid) return
+  try {
+    await formRef.value.validate()
+    const tagsStr = form.value.tags.join(',')
 
     if (isEdit.value && editingId.value) {
-      const idea = ideas.value.find(i => i.id === editingId.value)
-      if (idea) {
-        idea.content = form.value.content
-        idea.tags = [...form.value.tags]
-        idea.updatedAt = new Date().toISOString()
-        saveToStorage()
-        ElMessage.success('更新成功')
-        dialogVisible.value = false
-      }
-    } else {
-      const idea: BrainstormItem = {
-        id: Date.now().toString(),
+      await updateBrainstormApi({
+        id: editingId.value,
         content: form.value.content,
-        tags: [...form.value.tags],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-      ideas.value.unshift(idea)
-      saveToStorage()
+        tags: tagsStr
+      })
+      ElMessage.success('更新成功')
+    } else {
+      await addBrainstormApi({
+        content: form.value.content,
+        tags: tagsStr
+      })
       ElMessage.success('添加成功')
-      dialogVisible.value = false
     }
-  })
+    dialogVisible.value = false
+    await fetchData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(error)
+    }
+  }
 }
 
-function handleDeleteFromDialog() {
-  const idea = ideas.value.find(i => i.id === editingId.value)
-  if (!idea) return
-
-  ElMessageBox.confirm('确认删除这条想法吗？', '提示', { type: 'warning' }).then(() => {
-    ideas.value = ideas.value.filter(i => i.id !== editingId.value)
-    saveToStorage()
-    dialogVisible.value = false
-    ElMessage.success('已删除')
-  })
+async function fetchData() {
+  loading.value = true
+  try {
+    const params: any = {
+      pageNum: 1,
+      pageSize: 1000,
+    }
+    if (dateRange.value && dateRange.value.length === 2) {
+      params.startDate = dateRange.value[0]
+      params.endDate = dateRange.value[1]
+    }
+    if (searchKeyword.value) {
+      params.keyword = searchKeyword.value
+    }
+    if (filterTag.value) {
+      params.tag = filterTag.value
+    }
+    const { data } = await getBrainstormPageApi(params)
+    ideas.value = data.list || []
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
 }
 
 function handleQuery() {
-  // 筛选是响应式的，不需要额外操作
-}
-
-function loadFromStorage() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    if (data) {
-      ideas.value = JSON.parse(data)
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-function saveToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas.value))
-  } catch (e) {
-    console.error(e)
-  }
+  fetchData()
 }
 
 onMounted(() => {
-  loadFromStorage()
+  fetchData()
 })
 </script>
 
@@ -781,6 +874,19 @@ onMounted(() => {
     padding: 4px 10px;
     font-size: 12px;
     border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--el-color-primary);
+    }
+
+    &.is-checked {
+      background: var(--el-color-primary);
+      border-color: var(--el-color-primary);
+      color: #fff;
+    }
   }
 }
 
@@ -794,6 +900,71 @@ onMounted(() => {
 
   :deep(.el-empty__description) {
     font-size: 14px;
+    color: var(--text-secondary);
+  }
+}
+
+// 对话框通用样式
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .dialog-emoji {
+    font-size: 22px;
+  }
+
+  .dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .detail-emoji {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .detail-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+
+  .detail-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+}
+
+.detail-content {
+  padding: 24px 0;
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 120px;
+}
+
+.detail-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color-light);
+
+  .detail-time {
+    font-size: 13px;
     color: var(--text-secondary);
   }
 }
@@ -861,23 +1032,46 @@ onMounted(() => {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--el-color-primary), var(--el-color-success));
+    height: 4px;
+    background: linear-gradient(90deg, var(--tag-color, var(--el-color-primary)), var(--el-color-success));
     opacity: 0;
     transition: opacity 0.3s ease;
   }
 
+  &::after {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--tag-color, var(--el-color-primary-light-5)) 0%, transparent 70%);
+    opacity: 0.15;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12), 0 0 0 1px var(--tag-color, var(--el-color-primary-light-5));
     border-color: transparent;
 
     &::before {
       opacity: 1;
     }
 
+    &::after {
+      opacity: 0.25;
+      transform: scale(1.5);
+    }
+
     .card-actions {
       opacity: 1;
+    }
+
+    .card-emoji {
+      transform: scale(1.15);
     }
   }
 
@@ -921,19 +1115,79 @@ onMounted(() => {
 .card-inner {
   position: relative;
   z-index: 1;
-  padding: 18px;
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+
+  .card-emoji {
+    font-size: 28px;
+    line-height: 1;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .card-action-btn {
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .el-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
 }
 
 .card-content {
   font-size: 14px;
   color: var(--text-primary);
-  line-height: 1.7;
-  margin-bottom: 14px;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 56px;
+  line-height: 1.8;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 50px;
+  position: relative;
+  padding-left: 16px;
+
+  &::before {
+    content: '"';
+    position: absolute;
+    left: 0;
+    top: -4px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--tag-color, var(--el-color-primary));
+    opacity: 0.3;
+    font-family: Georgia, serif;
+  }
+}
+
+.expand-btn {
+  color: var(--el-color-primary);
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 4px;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .card-tags {
@@ -1176,6 +1430,35 @@ onMounted(() => {
   .timeline-row {
     .row-actions {
       opacity: 1;
+    }
+  }
+}
+
+// 详情弹窗 - 头部和关闭按钮对齐
+.detail-dialog {
+  :deep(.el-dialog__header) {
+    display: flex;
+    align-items: center;
+    padding: 20px 40px 10px 20px;
+    margin-right: 0;
+  }
+
+  :deep(.el-dialog__headerbtn) {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    .el-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 }

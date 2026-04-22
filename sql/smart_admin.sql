@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : z-local-docker-mysql
+ Source Server         : z-mysql
  Source Server Type    : MySQL
  Source Server Version : 80044 (8.0.44)
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 30/03/2026 12:03:33
+ Date: 22/04/2026 09:09:06
 */
 
 SET NAMES utf8mb4;
@@ -173,6 +173,37 @@ INSERT INTO `dev_dm_table` VALUES (6, 1, '角色菜单关联', 'sys_role_menu', 
 INSERT INTO `dev_dm_table` VALUES (7, 1, '菜单接口关联', 'sys_menu_api', '菜单与API的多对多关联', 7, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53', 0);
 INSERT INTO `dev_dm_table` VALUES (8, 3, '销售单', 'SM_SO', '', 0, 1, '2026-03-28 14:07:46', '2026-03-28 14:07:46', 0);
 INSERT INTO `dev_dm_table` VALUES (9, 3, '销售单行', 'SM_SOLine', '', 1, 1, '2026-03-30 11:04:05', '2026-03-30 11:04:05', 0);
+
+-- ----------------------------
+-- Table structure for life_diet_record
+-- ----------------------------
+DROP TABLE IF EXISTS `life_diet_record`;
+CREATE TABLE `life_diet_record`  (
+                                     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                     `user_id` bigint NOT NULL COMMENT '用户ID',
+                                     `record_date` date NOT NULL COMMENT '记录日期',
+                                     `meal_time` time NULL DEFAULT NULL COMMENT '用餐时间',
+                                     `meal_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '餐食类型: breakfast/lunch/dinner/snack/drink',
+                                     `food_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '食物名称',
+                                     `portion` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '份量，如: 1份、2碗、半碗',
+                                     `tags` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '标签，多个逗号分隔: 健康、轻食、高糖、油炸、辣、清淡',
+                                     `mood` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '心情: happy/good/so-so/binge/skip',
+                                     `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '描述/备注',
+                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`) USING BTREE,
+                                     INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
+                                     INDEX `idx_record_date`(`record_date` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '饮食记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of life_diet_record
+-- ----------------------------
+INSERT INTO `life_diet_record` VALUES (1, 1, '2026-04-20', '07:45:00', 'breakfast', '饼干', '4 pics', 'light', 'happy', '吃的少', '2026-04-20 17:10:39', '2026-04-20 17:10:39');
+INSERT INTO `life_diet_record` VALUES (2, 1, '2026-04-20', '12:15:00', 'lunch', '食堂四菜米饭', '1份', 'healthy', 'skip', '', '2026-04-20 17:11:31', '2026-04-20 17:13:24');
+INSERT INTO `life_diet_record` VALUES (3, 1, '2026-04-20', '07:30:00', 'dinner', '蒸面，牛腩', '2碗', 'high-sugar,healthy', 'so-so', '2碗是不是有点多', '2026-04-21 08:45:31', '2026-04-21 08:45:31');
+INSERT INTO `life_diet_record` VALUES (4, 1, '2026-04-21', '12:15:00', 'lunch', '食堂四菜米饭', '1份', 'healthy', 'so-so', '', '2026-04-21 14:38:50', '2026-04-21 15:33:48');
+INSERT INTO `life_diet_record` VALUES (5, 1, '2026-04-22', '08:48:00', 'breakfast', '香蕉', '一根', 'healthy,bland', 'happy', '', '2026-04-22 08:48:26', '2026-04-22 08:51:47');
 
 -- ----------------------------
 -- Table structure for sys_api
@@ -340,8 +371,11 @@ CREATE TABLE `sys_login_log`  (
                                   PRIMARY KEY (`id`) USING BTREE,
                                   INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
                                   INDEX `idx_login_time`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 49 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 77 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志表' ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Records of sys_login_log
+-- ----------------------------
 
 
 -- ----------------------------
@@ -365,7 +399,7 @@ CREATE TABLE `sys_menu`  (
                              PRIMARY KEY (`id`) USING BTREE,
                              INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
                              INDEX `idx_type`(`type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 67 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -414,6 +448,11 @@ INSERT INTO `sys_menu` VALUES (58, 51, '新增关系', 3, '', '', 'datamodel:rel
 INSERT INTO `sys_menu` VALUES (59, 51, '编辑关系', 3, '', '', 'datamodel:relation:edit', '', 8, 1, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53');
 INSERT INTO `sys_menu` VALUES (60, 51, '删除关系', 3, '', '', 'datamodel:relation:delete', '', 9, 1, 1, '2026-03-28 08:50:53', '2026-03-28 08:50:53');
 INSERT INTO `sys_menu` VALUES (61, 51, '批量编辑字段', 3, '', '', 'datamodel:column:batch', '', 10, 1, 1, '2026-03-30 09:00:08', '2026-03-30 09:00:08');
+INSERT INTO `sys_menu` VALUES (62, 0, '本地生活', 1, '/lifestyle', 'Layout', '', 'Grid', 3, 1, 1, '2026-04-20 16:18:09', '2026-04-20 16:18:09');
+INSERT INTO `sys_menu` VALUES (63, 62, '饮食管理', 2, '/lifestyle/diet', 'lifestyle/diet/index', '', 'Food', 1, 1, 1, '2026-04-20 16:18:09', '2026-04-20 16:21:56');
+INSERT INTO `sys_menu` VALUES (64, 62, '头脑风暴', 2, '/lifestyle/brainstorm', 'lifestyle/brainstorm/index', '', 'Monitor', 2, 1, 1, '2026-04-21 08:43:29', '2026-04-21 08:43:29');
+INSERT INTO `sys_menu` VALUES (65, 62, '文本收集', 2, '/lifestyle/text-collection', 'lifestyle/text-collection/index', '', 'Document', 3, 1, 1, '2026-04-21 08:43:29', '2026-04-21 08:43:29');
+INSERT INTO `sys_menu` VALUES (66, 62, '任务记录', 2, '/lifestyle/task-record', 'lifestyle/task-record/index', '', 'List', 4, 1, 1, '2026-04-21 08:43:29', '2026-04-21 08:43:29');
 
 -- ----------------------------
 -- Table structure for sys_menu_api
@@ -510,7 +549,11 @@ CREATE TABLE `sys_oper_log`  (
                                  PRIMARY KEY (`id`) USING BTREE,
                                  INDEX `idx_oper_time`(`oper_time` ASC) USING BTREE,
                                  INDEX `idx_business_type`(`business_type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 356 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 371 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_oper_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for sys_role

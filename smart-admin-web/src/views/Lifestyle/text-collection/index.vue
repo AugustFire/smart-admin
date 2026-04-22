@@ -145,16 +145,15 @@
       <!-- 编辑器和预览 -->
       <div class="editor-wrapper">
         <div v-show="editorMode !== 'preview'" class="editor-pane" :style="editorPaneStyle">
-          <div class="editor-scroll-container">
-            <MdEditor
-              v-model="currentContent"
-              :editor-id="editorId"
-              :preview="false"
-              :toolbars="toolbars"
-              placeholder="输入提示词文本，支持 Markdown 格式..."
-              @save="handleSave"
-            />
-          </div>
+          <MdEditor
+            ref="editorRef"
+            v-model="currentContent"
+            :editor-id="editorId"
+            :preview="false"
+            :toolbars="toolbars"
+            placeholder="输入提示词文本，支持 Markdown 格式..."
+            @save="handleSave"
+          />
         </div>
         <div v-show="editorMode === 'split'" class="resize-handle" @mousedown="startResize"></div>
         <div v-show="editorMode !== 'edit'" class="preview-pane" :style="previewPaneStyle">
@@ -163,6 +162,7 @@
           </div>
           <div class="preview-scroll-container">
             <MdPreview
+              ref="previewRef"
               :model-value="currentContent"
               :editor-id="editorId"
             />
@@ -207,6 +207,8 @@ const lastSavedAt = ref('')
 const isAutoSaving = ref(false)
 const editorMode = ref<'edit' | 'split' | 'preview'>('split')
 const splitRatio = ref(50)
+const editorRef = ref<InstanceType<typeof MdEditor>>()
+const previewRef = ref<InstanceType<typeof MdPreview>>()
 let isResizing = false
 let isSidebarResizing = false
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -322,6 +324,63 @@ function stopSidebarResize() {
   isSidebarResizing = false
   document.removeEventListener('mousemove', doSidebarResize)
   document.removeEventListener('mouseup', stopSidebarResize)
+}
+
+// 编辑器和预览滚动同步
+function setupScrollSync() {
+  if (editorMode.value !== 'split') return
+
+  const editorEl = editorRef.value?.$el as HTMLElement
+  const previewEl = previewRef.value?.$el as HTMLElement
+
+  if (!editorEl || !previewEl) return
+
+  // CodeMirror 的滚动容器是 .cm-scroller
+  const editorScroller = editorEl.querySelector('.cm-scroller') as HTMLElement
+  // 预览的滚动容器是 .preview-scroll-container（previewEl 的父元素）
+  const previewScrollEl = previewEl.parentElement as HTMLElement
+
+  if (!editorScroller || !previewScrollEl) return
+
+  let isScrolling = false
+
+  const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+    if (isScrolling) return
+    isScrolling = true
+
+    requestAnimationFrame(() => {
+      const sourceMax = source.scrollHeight - source.clientHeight
+      const targetMax = target.scrollHeight - target.clientHeight
+      if (sourceMax <= 0 || targetMax <= 0) {
+        isScrolling = false
+        return
+      }
+
+      const ratio = source.scrollTop / sourceMax
+
+      // 如果源头已经滚到底，让目标也滚到底
+      if (ratio >= 0.99) {
+        target.scrollTop = targetMax
+      } else if (ratio <= 0.01) {
+        target.scrollTop = 0
+      } else {
+        target.scrollTop = ratio * targetMax
+      }
+      isScrolling = false
+    })
+  }
+
+  editorScroller.addEventListener('scroll', () => {
+    if (editorMode.value === 'split') {
+      syncScroll(editorScroller, previewScrollEl)
+    }
+  }, { passive: true })
+
+  previewScrollEl.addEventListener('scroll', () => {
+    if (editorMode.value === 'split') {
+      syncScroll(previewScrollEl, editorScroller)
+    }
+  }, { passive: true })
 }
 
 function getCategoryName(categoryId?: string) {
@@ -573,6 +632,25 @@ watch([currentContent, currentTitle], () => {
 onMounted(() => {
   loadTexts()
   loadCategories()
+  setTimeout(() => {
+    setupScrollSync()
+  }, 500)
+})
+
+// 监听模式切换，重新设置滚动同步
+watch(editorMode, () => {
+  setTimeout(() => {
+    setupScrollSync()
+  }, 300)
+})
+
+// 监听内容变化，重新设置滚动同步
+watch(currentContent, () => {
+  setTimeout(() => {
+    if (editorMode.value === 'split') {
+      setupScrollSync()
+    }
+  }, 500)
 })
 
 onUnmounted(() => {
@@ -925,6 +1003,10 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border-color-light);
   background: var(--bg-secondary);
   flex-shrink: 0;
+  height: 40px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 
   .preview-label {
     font-size: 12px;
@@ -933,16 +1015,20 @@ onUnmounted(() => {
   }
 }
 
-.editor-scroll-container {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-
+.editor-pane {
   :deep(.md-editor) {
     flex: 1;
     height: 100%;
+
+    .md-editor-toolbar-wrapper {
+      height: 40px;
+      box-sizing: border-box;
+    }
+
+    .md-editor-main {
+      flex: 1;
+      overflow-y: auto;
+    }
   }
 }
 
@@ -954,7 +1040,9 @@ onUnmounted(() => {
   flex-direction: column;
 
   :deep(.md-editor-preview) {
-    flex: 1;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
   }
 }
 

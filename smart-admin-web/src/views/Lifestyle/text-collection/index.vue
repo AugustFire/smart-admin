@@ -70,7 +70,7 @@
       </div>
 
       <!-- 文本列表 -->
-      <div class="text-list">
+      <div class="text-list" v-loading="loading">
         <div
           v-for="text in filteredTexts"
           :key="text.id"
@@ -82,20 +82,7 @@
             <el-icon><Document /></el-icon>
           </div>
           <div class="text-item-content">
-            <!-- 标题：选中时可编辑 -->
-            <div v-if="editingTitleTextId === text.id" class="text-item-title-edit" @click.stop>
-              <el-input
-                v-model="editingTitleValue"
-                size="small"
-                @keyup.enter="saveTitleEdit(text)"
-                @blur="saveTitleEdit(text)"
-                ref="titleInputRef"
-                autofocus
-              />
-            </div>
-            <div v-else class="text-item-title" @dblclick.stop="startTitleEdit(text)">
-              {{ text.title || '无标题' }}
-            </div>
+            <div class="text-item-title">{{ text.title || '无标题' }}</div>
             <div class="text-item-meta">
               <el-tag v-if="getCategoryName(text.categoryId)" size="small">{{ getCategoryName(text.categoryId) }}</el-tag>
               <span class="text-item-date">{{ formatDate(text.updateTime) }}</span>
@@ -105,7 +92,13 @@
             <el-icon><Delete /></el-icon>
           </el-button>
         </div>
-        <el-empty v-if="filteredTexts.length === 0" description="暂无文本" :image-size="60" />
+        <div v-if="filteredTexts.length === 0" class="text-list-empty">
+          <p class="text-list-empty-text">暂无文本</p>
+          <el-button type="primary" size="small" @click="handleNewText">
+            <el-icon><Plus /></el-icon>
+            新建文本
+          </el-button>
+        </div>
       </div>
     </aside>
 
@@ -157,7 +150,7 @@
             <span class="save-dot" :class="{ saving: isAutoSaving }"></span>
             {{ isAutoSaving ? '保存中...' : `已保存 ${lastSavedAt}` }}
           </span>
-          <el-button type="primary" size="small" @click="handleSave" :disabled="!currentContent.trim()">
+          <el-button type="primary" size="small" @click="handleSave" :disabled="!currentContent.trim()" :loading="saving">
             <el-icon><Document /></el-icon>
             保存
           </el-button>
@@ -184,12 +177,24 @@
 
       <!-- 编辑器和预览 -->
       <div class="editor-wrapper">
+        <div v-if="!currentTextId && !currentContent.trim()" class="editor-empty">
+          <div class="editor-empty-icon">
+            <el-icon><Document /></el-icon>
+          </div>
+          <p class="editor-empty-text">选择一个文本或点击新建开始编辑</p>
+          <el-button type="primary" @click="handleNewText">
+            <el-icon><Plus /></el-icon>
+            新建文本
+          </el-button>
+        </div>
+        <template v-else>
         <div v-show="editorMode !== 'preview'" class="editor-pane" :style="editorPaneStyle">
           <MdEditor
             ref="editorRef"
             v-model="currentContent"
             :editor-id="editorId"
             :preview="false"
+            :theme="themeStore.isDark ? 'dark' : 'light'"
             :toolbars="toolbars"
             placeholder="输入提示词文本，支持 Markdown 格式..."
             @save="handleSave"
@@ -205,9 +210,11 @@
               ref="previewRef"
               :model-value="currentContent"
               :editor-id="editorId"
+              :theme="themeStore.isDark ? 'dark' : 'light'"
             />
           </div>
         </div>
+        </template>
       </div>
     </main>
   </div>
@@ -215,6 +222,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useThemeStore } from '@/store/modules/theme'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Search, Document, Histogram, View, Edit, Timer, Close, EditPen } from '@element-plus/icons-vue'
 import { MdEditor, MdPreview } from 'md-editor-v3'
@@ -239,6 +247,7 @@ import {
 } from '@/api/lifestyle/text-collection'
 
 const editorId = 'text-collection-editor'
+const themeStore = useThemeStore()
 
 const searchKeyword = ref('')
 const newCategoryName = ref('')
@@ -262,6 +271,7 @@ const splitRatio = ref(50)
 const editorRef = ref<InstanceType<typeof MdEditor>>()
 const previewRef = ref<InstanceType<typeof MdPreview>>()
 const loading = ref(false)
+const saving = ref(false)
 let isResizing = false
 let isSidebarResizing = false
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -270,7 +280,6 @@ const minSidebarWidth = 200
 const maxSidebarWidth = 500
 
 // 标题编辑状态
-const editingTitleTextId = ref('')
 const editingTitleValue = ref('')
 const titleInputRef = ref()
 
@@ -480,7 +489,12 @@ function handleCategoryInputBlur() {
 }
 
 async function handleDeleteCategory(data: TextCategory) {
-  ElMessageBox.confirm(`确认删除分类「${data.name}」吗？`, '提示', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm(`确认删除分类「${data.name}」吗？该分类下的文本将变为无分类。`, '删除确认', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning',
+    confirmButtonClass: 'el-button--danger',
+  }).then(async () => {
     try {
       await deleteTextCategoryApi(data.id)
       await loadCategories()
@@ -491,7 +505,7 @@ async function handleDeleteCategory(data: TextCategory) {
     } catch (e) {
       console.error(e)
     }
-  })
+  }).catch(() => {})
 }
 
 function startCategoryEdit(cat: TextCategory) {
@@ -542,10 +556,6 @@ function handleNewText() {
 }
 
 function handleSelectText(text: TextCollectionItem) {
-  // 取消正在编辑的标题
-  if (editingTitleTextId.value) {
-    saveTitleEdit(texts.value.find(t => t.id === editingTitleTextId.value))
-  }
   currentTextId.value = text.id
   currentTitle.value = text.title
   currentContent.value = text.content
@@ -553,23 +563,15 @@ function handleSelectText(text: TextCollectionItem) {
   currentTags.value = getTextTags(text)
 }
 
-function startTitleEdit(text?: TextCollectionItem) {
-  if (text) {
-    editingTitleTextId.value = text.id
-    editingTitleValue.value = text.title || ''
-    nextTick(() => {
-      titleInputRef.value?.focus()
-    })
-  } else {
-    editingTitle.value = true
-    editingTitleValue.value = currentTitle.value || ''
-    nextTick(() => {
-      toolbarTitleInputRef.value?.focus()
-    })
-  }
+function startTitleEdit() {
+  editingTitle.value = true
+  editingTitleValue.value = currentTitle.value || ''
+  nextTick(() => {
+    toolbarTitleInputRef.value?.focus()
+  })
 }
 
-function saveTitleEdit(text?: TextCollectionItem) {
+function saveTitleEdit() {
   if (editingTitle.value) {
     // 保存顶部工具栏标题
     editingTitle.value = false
@@ -584,24 +586,7 @@ function saveTitleEdit(text?: TextCollectionItem) {
       } as any).catch(console.error)
     }
     editingTitleValue.value = ''
-    return
   }
-
-  if (!editingTitleTextId.value) return
-
-  const targetText = text || texts.value.find(t => t.id === editingTitleTextId.value)
-  if (targetText && editingTitleValue.value !== undefined) {
-    targetText.title = editingTitleValue.value.trim() || '无标题'
-    updateTextCollectionApi({
-      id: targetText.id,
-      title: targetText.title,
-      content: targetText.content,
-      categoryId: targetText.categoryId,
-      tags: targetText.tags,
-    } as any).catch(console.error)
-  }
-  editingTitleTextId.value = ''
-  editingTitleValue.value = ''
 }
 
 async function handleSave() {
@@ -610,6 +595,7 @@ async function handleSave() {
     return
   }
 
+  saving.value = true
   try {
     if (currentTextId.value) {
       await updateTextCollectionApi({
@@ -632,6 +618,8 @@ async function handleSave() {
     ElMessage.success('保存成功')
   } catch (e) {
     console.error(e)
+  } finally {
+    saving.value = false
   }
 }
 
@@ -689,7 +677,12 @@ function formatLastSaveTime(date: Date) {
 }
 
 async function handleDeleteText(text: TextCollectionItem) {
-  ElMessageBox.confirm(`确认删除「${text.title || '无标题'}」吗？`, '提示', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm(`确认删除「${text.title || '无标题'}」吗？删除后不可恢复。`, '删除确认', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning',
+    confirmButtonClass: 'el-button--danger',
+  }).then(async () => {
     try {
       await deleteTextCollectionApi(text.id)
       await loadTexts()
@@ -702,7 +695,7 @@ async function handleDeleteText(text: TextCollectionItem) {
     } catch (e) {
       console.error(e)
     }
-  })
+  }).catch(() => {})
 }
 
 async function loadTexts() {
@@ -844,6 +837,11 @@ onUnmounted(() => {
   background: var(--bg-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--el-color-primary);
+  }
 
   &:hover {
     background: var(--el-color-primary-light-9);
@@ -866,24 +864,34 @@ onUnmounted(() => {
   }
 
   &-delete {
-    font-size: 10px;
+    font-size: 12px;
     margin-left: 2px;
-    opacity: 0.6;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.15s;
 
     &:hover {
       opacity: 1;
       color: var(--el-color-danger);
+      background: var(--el-color-danger-light-9);
     }
   }
 
   &-edit {
-    font-size: 10px;
+    font-size: 12px;
     margin-left: 2px;
-    opacity: 0.6;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.15s;
 
     &:hover {
       opacity: 1;
       color: var(--el-color-primary);
+      background: var(--el-color-primary-light-9);
     }
   }
 
@@ -918,6 +926,34 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 8px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.text-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+
+  .text-list-empty-text {
+    font-size: 13px;
+    margin: 0;
+  }
 }
 
 .text-item {
@@ -930,6 +966,11 @@ onUnmounted(() => {
   transition: all 0.15s ease;
   margin-bottom: 4px;
   border: 1px solid transparent;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--el-color-primary);
+  }
 
   &:hover {
     background: var(--bg-secondary);
@@ -1198,16 +1239,100 @@ onUnmounted(() => {
   :deep(.md-editor) {
     flex: 1;
     height: 100%;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    transition: background-color 0.7s ease, border-color 0.7s ease, color 0.7s ease;
 
     .md-editor-toolbar-wrapper {
       height: 40px;
       box-sizing: border-box;
+      background: var(--bg-secondary);
+      border-color: var(--border-color);
+      transition: background-color 0.7s ease, border-color 0.7s ease;
+
+      .md-editor-toolbar {
+        color: var(--text-regular);
+        transition: color 0.7s ease;
+      }
     }
 
     .md-editor-main {
       flex: 1;
       overflow-y: auto;
+      background: var(--bg-primary);
+      transition: background-color 0.7s ease;
+
+      .cm-editor {
+        background-color: var(--bg-primary) !important;
+        transition: background-color 0.7s ease;
+      }
+
+      .cm-scroller {
+        background-color: var(--bg-primary) !important;
+        transition: background-color 0.7s ease;
+      }
+
+      .cm-content {
+        color: var(--text-primary) !important;
+        caret-color: var(--text-primary);
+        transition: color 0.7s ease;
+      }
     }
+
+    .md-editor-input {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+  }
+
+  :deep(.md-editor.md-editor-dark) {
+    background-color: #1a1a2e;
+
+    .md-editor-toolbar-wrapper {
+      background: #161622;
+
+      .md-editor-toolbar {
+        color: #a0a0a0;
+      }
+    }
+
+    .md-editor-main {
+      background: #1a1a2e;
+
+      .cm-editor {
+        background-color: #1a1a2e !important;
+      }
+
+      .cm-scroller {
+        background-color: #1a1a2e !important;
+      }
+
+      .cm-content {
+        color: #e0e0e0 !important;
+        caret-color: #e0e0e0;
+      }
+    }
+  }
+}
+
+.editor-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-secondary);
+
+  .editor-empty-icon {
+    font-size: 48px;
+    color: var(--el-color-primary-light-5);
+  }
+
+  .editor-empty-text {
+    font-size: 14px;
+    margin: 0;
   }
 }
 
@@ -1230,6 +1355,59 @@ onUnmounted(() => {
     overflow-y: auto;
     background: var(--bg-secondary);
     padding: 20px;
+    color: var(--text-primary);
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-primary);
+    }
+
+    code {
+      background: var(--bg-primary);
+      color: var(--el-color-primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+
+      code {
+        background: transparent;
+        padding: 0;
+        color: inherit;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--el-color-primary);
+      background: var(--bg-primary);
+      margin: 16px 0;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      color: var(--text-regular);
+    }
+
+    a {
+      color: var(--el-color-primary);
+    }
+
+    table {
+      border-color: var(--border-color);
+
+      th, td {
+        border-color: var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      th {
+        background: var(--bg-secondary);
+      }
+    }
   }
 }
 

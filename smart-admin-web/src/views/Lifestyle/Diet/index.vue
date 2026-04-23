@@ -282,7 +282,7 @@
         </el-form-item>
         <el-form-item label="心情" prop="mood">
           <div class="mood-selector">
-            <el-tooltip v-for="m in moods" :key="m.value" :content="m.label" placement="top">
+            <el-tooltip v-for="m in moods" :key="m.value" placement="top" effect="light" :content="`${m.emoji} ${m.label}`">
               <el-button
                 :type="form.mood === m.value ? 'primary' : 'default'"
                 circle

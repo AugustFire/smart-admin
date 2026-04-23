@@ -584,7 +584,33 @@ html[data-theme='dark'] {
     background-color: var(--bg-primary);
 
     .el-dialog__header {
-      background: linear-gradient(135deg, #FE4066 0%, #e63055 100%);
+      background: linear-gradient(135deg, #374151 0%, #1e293b 100%);
+
+      .el-dialog__title {
+        color: #f1f5f9;
+        font-weight: 600;
+      }
+
+      .el-dialog__headerbtn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+
+        .el-icon {
+          color: #f1f5f9;
+        }
+
+        &:hover {
+          background: rgba(254, 64, 102, 0.3);
+          transform: rotate(90deg);
+
+          .el-icon {
+            color: #fff;
+          }
+        }
+      }
     }
 
     .el-dialog__body {

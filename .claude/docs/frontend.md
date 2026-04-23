@@ -175,185 +175,27 @@ export interface DatabaseAddReq {
 
 ## 样式规范
 
-### 颜色与主题规范
+### 颜色与主题
 
-**禁止使用硬编码颜色值**，所有颜色必须使用 CSS 变量：
-
-```scss
-/* ❌ 错误：硬编码颜色 */
-.my-component {
-  color: #333;
-  background: #fff;
-  border-color: #e2e8f0;
-}
-
-/* ✅ 正确：使用 CSS 变量 */
-.my-component {
-  color: var(--text-regular);
-  background: var(--bg-primary);
-  border-color: var(--border-color);
-}
-```
-
-**UI 风格必须与全局保持一致：**
-- 使用项目定义的 CSS 变量（在 `src/styles/index.scss` 中定义）
-- 支持亮色/暗黑主题自动切换
+- **禁止使用硬编码颜色值**，必须使用 CSS 变量，支持亮色/暗黑主题自动切换
 - 主题色为玫红色 `#FE4066`（`--el-color-primary`）
 - 圆角、阴影使用变量 `--card-radius`、`--card-shadow`
 
-### CSS 变量
-
-使用项目定义的 CSS 变量，支持主题切换：
-
-```scss
-/* 亮色主题 */
---el-color-primary: #FE4066;           // 主题色-玫红色
---sidebar-bg-color: #ffffff;           // 侧边栏背景
---sidebar-active-bg-color: rgba(254, 64, 102, 0.1);
---text-primary: #0f172a;               // 主文字
---text-regular: #334155;               // 常规文字
---text-secondary: #64748b;             // 次要文字
---bg-primary: #ffffff;                 // 主背景
---bg-secondary: #f8fafc;               // 次背景
---border-color: #e2e8f0;               // 边框色
-
-/* 暗黑主题 */
---sidebar-bg-color: #1e293b;
---text-primary: #f1f5f9;
---bg-primary: #1e293b;
-```
-
-### 常用样式模式
-
-```scss
-// 卡片样式
-.card {
-  background: var(--bg-primary);
-  border-radius: var(--card-radius);  // 12px
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-color);
-}
-
-// 表格样式
-.table-container {
-  .el-table {
-    border-radius: var(--card-radius);
-    overflow: hidden;
-  }
-}
-
-// 列表项样式
-.list-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--bg-secondary);
-  }
-
-  &.is-selected {
-    background: var(--el-color-primary-light-9);
-    border-color: var(--el-color-primary-light-5);
-  }
-}
-```
+> 💡 详见 [前端踩坑记录 - 禁止使用硬编码颜色](./frontend-pitfalls.md#禁止使用硬编码颜色值)
 
 ## Element Plus 组件使用
 
 ### 对话框（el-dialog）样式覆盖
 
-覆盖 el-dialog 样式时，选择器格式必须统一，否则关闭按钮无法正确对齐：
+覆盖 el-dialog 样式时，选择器格式必须使用 `:deep(.父级类.el-dialog)`，否则关闭按钮会偏移。
 
-```scss
-/* ❌ 错误：.detail-dialog 作为父级，el-dialog__headerbtn 用 absolute + transform 定位基准会错 */
-.detail-dialog {
-  :deep(.el-dialog__header) {
-    .el-dialog__headerbtn { ... }
-  }
-}
+> 💡 详见 [前端踩坑记录 - el-dialog 关闭按钮偏移](./frontend-pitfalls.md#el-dialog-关闭按钮垂直居中偏移)
 
-/* ✅ 正确：使用 :deep(.xxx.el-dialog) 格式，与 Element Plus 内部选择器格式一致 */
-:deep(.detail-dialog.el-dialog) {
-  .el-dialog__header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-right: 0;
+### 嵌套滚动容器布局
 
-    .el-dialog__title {
-      font-size: 16px;
-      font-weight: 600;
-    }
+嵌套 flex 布局中，内层容器内容超出无法滚动时，使用 `flex: 1` + `min-height: 0` + `overflow-y: auto`。
 
-    .el-dialog__headerbtn {
-      position: static;
-      top: auto;
-      right: auto;
-      font-size: 18px;
-
-      .el-dialog__close {
-        color: var(--text-secondary);
-        transition: color 0.2s;
-        &:hover {
-          color: var(--el-color-primary);
-        }
-      }
-    }
-  }
-}
-```
-
-**原因**：Element Plus 内部 `.el-dialog__headerbtn` 关闭按钮使用 `position: absolute` + `transform: translateY(-50%)` 实现垂直居中。如果外层选择器格式不对，transform 的基准元素错误，导致关闭按钮垂直偏移。
-
-### 嵌套滚动容器的布局
-
-嵌套 flex 布局中，如果内层容器内容超出无法滚动，常见原因和解决方案：
-
-**问题**：父容器 flex + overflow + 子容器 height: 100% 组合时，内层 div 可能撑满父容器高度，导致内容被裁剪无法滚动。
-
-**错误示例**：
-```scss
-.outer-container {
-  flex: 1;
-  overflow-y: auto;  // 外层滚动
-  display: flex;
-  flex-direction: column;
-
-  .inner-content {
-    height: 100%;      // 错误：撑满父容器，内容被裁剪
-    overflow-y: auto;
-  }
-}
-```
-
-**正确示例**：
-```scss
-.outer-container {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;   // 外层不滚动
-  display: flex;
-  flex-direction: column;
-
-  .inner-content {
-    flex: 1;
-    min-height: 0;     // 关键：允许收缩以适应空间
-    overflow-y: auto;  // 内层滚动
-    padding: 20px;
-  }
-}
-```
-
-**关键点**：
-- 外层 `overflow: hidden` 防止自身滚动
-- 内层 `flex: 1` + `min-height: 0` 让内容区自动扩展高度
-- 内层 `overflow-y: auto` 提供滚动能力
+> 💡 详见 [前端踩坑记录 - 嵌套滚动容器内容被裁剪](./frontend-pitfalls.md#嵌套滚动容器内容被裁剪)
 
 ### 表单
 
@@ -466,3 +308,4 @@ export interface DatabaseAddReq {
 | 前端 | http://localhost:3000 | Vite 开发服务器（热更新，无需重启） |
 | 后端 | http://localhost:8080 | Spring Boot |
 | API 文档 | http://localhost:8080/doc.html | Knife4j |
+

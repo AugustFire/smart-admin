@@ -20,6 +20,7 @@ const cachedViews = computed(() => tagsViewStore.cachedViews)
 
 <style lang="scss" scoped>
 .app-main {
+  height: 100%;
   min-height: calc(100vh - var(--navbar-height) - var(--tags-height));
   width: 100%;
   position: relative;

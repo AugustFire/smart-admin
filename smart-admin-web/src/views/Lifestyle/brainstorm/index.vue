@@ -627,7 +627,6 @@ onMounted(() => {
 .brainstorm-container {
   padding: 20px;
   background: var(--app-main-bg-color);
-  min-height: calc(100vh - 84px);
 }
 
 .top-bar {

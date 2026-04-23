@@ -747,7 +747,6 @@ onMounted(() => {
 .diet-container {
   padding: 20px;
   background: var(--app-main-bg-color);
-  min-height: calc(100vh - 84px);
 }
 
 // 顶部工具栏

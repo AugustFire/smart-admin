@@ -221,24 +221,7 @@ body {
   height: 100%;
 }
 
-/* 滚动条样式 - 更美观 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--text-placeholder);
-  border-radius: 4px;
-
-  &:hover {
-    background-color: var(--text-secondary);
-  }
-}
-
-::-webkit-scrollbar-track {
-  background-color: var(--bg-tertiary);
-}
+/* 滚动条样式 - 由浏览器默认处理，仅在需要时显示 */
 
 /* 链接样式 */
 a {

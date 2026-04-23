@@ -130,3 +130,11 @@ sys_user → sys_user_role → sys_role → sys_role_menu → sys_menu → sys_a
 - 操作日志：`@OperLog` 注解 + AOP
 - 密码加密：BCrypt
 - 后端**不使用** `Serializable`
+
+---
+
+## ⚠️ 重要提醒
+
+**未经用户明确允许，不得自行提交代码（git commit + git push）。**
+
+只有在用户明确说"提交代码"或"可以提交"时才可执行提交操作。

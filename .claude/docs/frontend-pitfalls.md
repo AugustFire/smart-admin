@@ -131,6 +131,63 @@
 
 ---
 
+### 页面内容超出但不显示滚动条
+
+**问题描述**：页面内容明显超出屏幕，但滚动条不出现，无法滚动。
+
+**原因分析**：
+1. 父容器使用 `min-height: 100%` 而非固定高度，导致子元素的百分比高度无法计算
+2. Flex 子元素没有设置 `flex: 1` 或 `min-height: 0`，无法正确填满剩余空间
+3. 全局滚动条样式设置了固定宽度，即使无溢出也会显示
+
+**错误示例**（项目实际案例）：
+```scss
+// layout/index.vue
+.main-container {
+  min-height: 100%;  /* ❌ 问题：min-height 无法让子元素获得固定高度 */
+}
+
+// AppMain/index.vue
+.app-main {
+  height: 100%;  /* ❌ 问题：父容器无固定高度，100% 计算结果无效 */
+  overflow-y: auto;
+}
+
+// styles/index.scss
+::-webkit-scrollbar {
+  width: 8px;  /* ❌ 问题：即使不需要滚动也会显示滚动条 */
+}
+```
+
+**正确示例**：
+```scss
+// layout/index.vue
+.main-container {
+  height: 100vh;  /* ✅ 使用 vh 单位固定高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+// AppMain/index.vue
+.app-main {
+  flex: 1;        /* ✅ 填满剩余空间 */
+  min-height: 0;  /* ✅ 关键：允许收缩 */
+  overflow-y: auto;
+}
+
+// styles/index.scss
+/* ✅ 删除全局滚动条宽度设置，浏览器默认只在需要时显示 */
+```
+
+**关键点**：
+1. 页面布局的根容器应使用 `height: 100vh` 而非 `min-height: 100%`
+2. Flex 布局中要让子元素填满剩余空间，需同时设置 `flex: 1` 和 `min-height: 0`
+3. 全局滚动条样式不要设置固定宽度，让浏览器默认处理
+
+**参考案例**：`AppMain/index.vue`、`.main-container` 滚动修复
+
+---
+
 ## 样式踩坑
 
 ### 禁止使用硬编码颜色值

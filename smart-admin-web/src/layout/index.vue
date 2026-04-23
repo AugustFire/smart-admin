@@ -72,10 +72,12 @@ function handleClickOutside() {
 }
 
 .main-container {
-  min-height: 100%;
+  height: 100vh;
   transition: margin-left 0.28s;
   margin-left: var(--sidebar-width, 220px);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .hideSidebar {

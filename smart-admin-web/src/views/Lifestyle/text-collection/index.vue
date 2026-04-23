@@ -177,7 +177,7 @@
 
       <!-- 编辑器和预览 -->
       <div class="editor-wrapper">
-        <div v-if="!currentTextId && !currentContent.trim()" class="editor-empty">
+        <div v-if="!currentTextId && !currentContent.trim() && !isCreatingNew" class="editor-empty">
           <div class="editor-empty-icon">
             <el-icon><Document /></el-icon>
           </div>
@@ -258,6 +258,7 @@ const autoSaveEnabled = ref(false)
 const currentTextId = ref<number | null>(null)
 const currentTitle = ref('')
 const currentContent = ref('')
+const isCreatingNew = ref(false)
 const currentCategoryId = ref<number | null>(null) // 侧边栏筛选用
 const textCategoryId = ref<number | null>(null) // 当前文本的分类
 const currentTags = ref<string[]>([])
@@ -542,11 +543,12 @@ function toggleAutoSave() {
 }
 
 function handleNewText() {
+  isCreatingNew.value = true
   currentTextId.value = null
   currentTitle.value = ''
   currentContent.value = ''
   currentTags.value = []
-  textCategoryId.value = null
+  textCategoryId.value = currentCategoryId.value
   // 新建时立即进入标题编辑模式
   nextTick(() => {
     editingTitle.value = true
@@ -556,6 +558,7 @@ function handleNewText() {
 }
 
 function handleSelectText(text: TextCollectionItem) {
+  isCreatingNew.value = false
   currentTextId.value = text.id
   currentTitle.value = text.title
   currentContent.value = text.content
@@ -687,6 +690,7 @@ async function handleDeleteText(text: TextCollectionItem) {
       await deleteTextCollectionApi(text.id)
       await loadTexts()
       if (currentTextId.value === text.id) {
+        isCreatingNew.value = false
         currentTextId.value = null
         currentTitle.value = ''
         currentContent.value = ''

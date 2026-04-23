@@ -61,17 +61,39 @@ export interface TextCategoryUpdateReq {
   sort?: number
 }
 
+// 响应类型定义
+export interface PageResponse<T> {
+  code: number
+  data: {
+    list: T[]
+    total: number
+  }
+  message: string
+}
+
+export interface IdResponse {
+  code: number
+  data: number
+  message: string
+}
+
+export interface ListResponse<T> {
+  code: number
+  data: T[]
+  message: string
+}
+
 // 文本收藏 API
 export function getTextCollectionPageApi(params: TextCollectionPageQueryReq) {
-  return request.get<any>(`${BASE_URL}/page`, { params })
+  return request.get<PageResponse<TextCollectionItem>>(`${BASE_URL}/page`, { params })
 }
 
 export function getTextCollectionByIdApi(id: number) {
-  return request.get<any>(`${BASE_URL}/${id}`)
+  return request.get<PageResponse<TextCollectionItem>>(`${BASE_URL}/${id}`)
 }
 
 export function addTextCollectionApi(data: TextCollectionAddReq) {
-  return request.post<any>(`${BASE_URL}/add`, data)
+  return request.post<IdResponse>(`${BASE_URL}/add`, data)
 }
 
 export function updateTextCollectionApi(data: TextCollectionUpdateReq) {
@@ -84,15 +106,15 @@ export function deleteTextCollectionApi(id: number) {
 
 // 文本分类 API
 export function getTextCategoryListApi() {
-  return request.get<any>(`${BASE_URL}/category/list`)
+  return request.get<ListResponse<TextCategory>>(`${BASE_URL}/category/list`)
 }
 
 export function getTextCategoryFlatApi() {
-  return request.get<any>(`${BASE_URL}/category/flat`)
+  return request.get<ListResponse<TextCategory>>(`${BASE_URL}/category/flat`)
 }
 
 export function addTextCategoryApi(data: TextCategoryAddReq) {
-  return request.post<any>(`${BASE_URL}/category/add`, data)
+  return request.post<IdResponse>(`${BASE_URL}/category/add`, data)
 }
 
 export function updateTextCategoryApi(data: TextCategoryUpdateReq) {

@@ -244,6 +244,7 @@ import {
   type TextCollectionAddReq,
   type TextCollectionUpdateReq,
   type TextCategoryAddReq,
+  type TextCollectionPageQueryReq,
 } from '@/api/lifestyle/text-collection'
 
 const editorId = 'text-collection-editor'
@@ -313,6 +314,8 @@ const toolbars: ToolbarNames[] = [
   'katex',
   'revoke',
   'next',
+  'splitLine',
+  'format',
 ]
 
 const filteredTexts = computed(() => {
@@ -352,6 +355,8 @@ function startResize(e: MouseEvent) {
   document.addEventListener('mousemove', doResize)
   document.addEventListener('mouseup', stopResize)
   e.preventDefault()
+  // 防止拖拽时选中文本
+  document.body.style.userSelect = 'none'
 }
 
 function doResize(e: MouseEvent) {
@@ -367,6 +372,7 @@ function stopResize() {
   isResizing = false
   document.removeEventListener('mousemove', doResize)
   document.removeEventListener('mouseup', stopResize)
+  document.body.style.userSelect = ''
 }
 
 function startSidebarResize(e: MouseEvent) {
@@ -374,6 +380,8 @@ function startSidebarResize(e: MouseEvent) {
   document.addEventListener('mousemove', doSidebarResize)
   document.addEventListener('mouseup', stopSidebarResize)
   e.preventDefault()
+  // 防止拖拽时选中文本
+  document.body.style.userSelect = 'none'
 }
 
 function doSidebarResize(e: MouseEvent) {
@@ -389,10 +397,19 @@ function stopSidebarResize() {
   isSidebarResizing = false
   document.removeEventListener('mousemove', doSidebarResize)
   document.removeEventListener('mouseup', stopSidebarResize)
+  document.body.style.userSelect = ''
 }
 
 // 编辑器和预览滚动同步
+let scrollSyncCleanupFn: (() => void) | null = null
+
 function setupScrollSync() {
+  // 先清理之前的监听器，避免内存泄漏
+  if (scrollSyncCleanupFn) {
+    scrollSyncCleanupFn()
+    scrollSyncCleanupFn = null
+  }
+
   if (editorMode.value !== 'split') return
 
   const editorEl = editorRef.value?.$el as HTMLElement
@@ -402,8 +419,8 @@ function setupScrollSync() {
 
   // CodeMirror 的滚动容器是 .cm-scroller
   const editorScroller = editorEl.querySelector('.cm-scroller') as HTMLElement
-  // 预览的滚动容器是 .preview-scroll-container（previewEl 的父元素）
-  const previewScroller = previewEl.parentElement as HTMLElement
+  // 预览的滚动容器向上查找 .preview-scroll-container
+  const previewScroller = previewEl.closest('.preview-scroll-container') as HTMLElement
 
   if (!editorScroller || !previewScroller) return
 
@@ -432,17 +449,25 @@ function setupScrollSync() {
     })
   }
 
-  editorScroller.addEventListener('scroll', () => {
+  const editorHandler = () => {
     if (editorMode.value === 'split') {
       syncScroll(editorScroller, previewScroller)
     }
-  }, { passive: true })
+  }
 
-  previewScroller.addEventListener('scroll', () => {
+  const previewHandler = () => {
     if (editorMode.value === 'split') {
       syncScroll(previewScroller, editorScroller)
     }
-  }, { passive: true })
+  }
+
+  editorScroller.addEventListener('scroll', editorHandler, { passive: true })
+  previewScroller.addEventListener('scroll', previewHandler, { passive: true })
+
+  scrollSyncCleanupFn = () => {
+    editorScroller?.removeEventListener('scroll', editorHandler)
+    previewScroller?.removeEventListener('scroll', previewHandler)
+  }
 }
 
 function getTextTags(text: TextCollectionItem): string[] {
@@ -586,7 +611,9 @@ function saveTitleEdit() {
         content: currentContent.value,
         categoryId: textCategoryId.value,
         tags: currentTags.value.join(','),
-      } as any).catch(console.error)
+      } as TextCollectionUpdateReq).catch(() => {
+        ElMessage.error('标题保存失败')
+      })
     }
     editingTitleValue.value = ''
   }
@@ -607,7 +634,7 @@ async function handleSave() {
         content: currentContent.value,
         categoryId: textCategoryId.value,
         tags: currentTags.value.join(','),
-      } as any)
+      } as TextCollectionUpdateReq)
     } else {
       const res = await addTextCollectionApi({
         title: currentTitle.value || '无标题',
@@ -616,11 +643,13 @@ async function handleSave() {
         tags: currentTags.value.join(','),
       } as TextCollectionAddReq)
       currentTextId.value = res.data
+      isCreatingNew.value = false
     }
     await loadTexts()
     ElMessage.success('保存成功')
   } catch (e) {
     console.error(e)
+    ElMessage.error('保存失败')
   } finally {
     saving.value = false
   }
@@ -644,7 +673,7 @@ function triggerAutoSave() {
           content: currentContent.value,
           categoryId: textCategoryId.value,
           tags: currentTags.value.join(','),
-        } as any)
+        } as TextCollectionUpdateReq)
       } else {
         const res = await addTextCollectionApi({
           title: currentTitle.value || '无标题',
@@ -653,11 +682,13 @@ function triggerAutoSave() {
           tags: currentTags.value.join(','),
         } as TextCollectionAddReq)
         currentTextId.value = res.data
+        isCreatingNew.value = false
       }
       lastSavedAt.value = '刚刚'
       await loadTexts()
     } catch (e) {
       console.error(e)
+      ElMessage.error('自动保存失败，请手动保存')
     } finally {
       isAutoSaving.value = false
     }
@@ -705,7 +736,7 @@ async function handleDeleteText(text: TextCollectionItem) {
 async function loadTexts() {
   loading.value = true
   try {
-    const params: any = {}
+    const params: TextCollectionPageQueryReq = {}
     if (currentCategoryId.value) {
       params.categoryId = currentCategoryId.value
     }
@@ -739,31 +770,42 @@ watch([currentContent, currentTitle], () => {
 
 onMounted(async () => {
   await Promise.all([loadTexts(), loadCategories()])
-  setTimeout(() => {
-    setupScrollSync()
-  }, 500)
+  // 使用 nextTick 确保 DOM 已完全渲染后再设置滚动同步
+  nextTick(() => {
+    setTimeout(() => {
+      setupScrollSync()
+    }, 100)
+  })
 })
 
 // 监听模式切换，重新设置滚动同步
 watch(editorMode, () => {
-  setTimeout(() => {
-    setupScrollSync()
-  }, 300)
+  nextTick(() => {
+    setTimeout(() => {
+      setupScrollSync()
+    }, 100)
+  })
 })
 
 // 监听内容变化，重新设置滚动同步
 watch(currentContent, () => {
-  setTimeout(() => {
-    if (editorMode.value === 'split') {
-      setupScrollSync()
-    }
-  }, 500)
+  nextTick(() => {
+    setTimeout(() => {
+      if (editorMode.value === 'split') {
+        setupScrollSync()
+      }
+    }, 100)
+  })
 })
 
 onUnmounted(() => {
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer)
     autoSaveTimer = null
+  }
+  if (scrollSyncCleanupFn) {
+    scrollSyncCleanupFn()
+    scrollSyncCleanupFn = null
   }
 })
 </script>
@@ -1251,18 +1293,18 @@ onUnmounted(() => {
     background-color: var(--bg-primary);
     border-color: var(--border-color);
     color: var(--text-primary);
-    transition: background-color 0.7s ease, border-color 0.7s ease, color 0.7s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 
     .md-editor-toolbar-wrapper {
       height: 40px;
       box-sizing: border-box;
       background: var(--bg-secondary);
       border-color: var(--border-color);
-      transition: background-color 0.7s ease, border-color 0.7s ease;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
 
       .md-editor-toolbar {
         color: var(--text-regular);
-        transition: color 0.7s ease;
+        transition: color 0.3s ease;
       }
     }
 
@@ -1270,57 +1312,28 @@ onUnmounted(() => {
       flex: 1;
       overflow-y: auto;
       background: var(--bg-primary);
-      transition: background-color 0.7s ease;
+      transition: background-color 0.3s ease;
 
       .cm-editor {
         background-color: var(--bg-primary) !important;
-        transition: background-color 0.7s ease;
+        transition: background-color 0.3s ease;
       }
 
       .cm-scroller {
         background-color: var(--bg-primary) !important;
-        transition: background-color 0.7s ease;
+        transition: background-color 0.3s ease;
       }
 
       .cm-content {
         color: var(--text-primary) !important;
         caret-color: var(--text-primary);
-        transition: color 0.7s ease;
+        transition: color 0.3s ease;
       }
     }
 
     .md-editor-input {
       background: var(--bg-primary);
       color: var(--text-primary);
-    }
-  }
-
-  :deep(.md-editor.md-editor-dark) {
-    background-color: #1a1a2e;
-
-    .md-editor-toolbar-wrapper {
-      background: #161622;
-
-      .md-editor-toolbar {
-        color: #a0a0a0;
-      }
-    }
-
-    .md-editor-main {
-      background: #1a1a2e;
-
-      .cm-editor {
-        background-color: #1a1a2e !important;
-      }
-
-      .cm-scroller {
-        background-color: #1a1a2e !important;
-      }
-
-      .cm-content {
-        color: #e0e0e0 !important;
-        caret-color: #e0e0e0;
-      }
     }
   }
 }
@@ -1489,11 +1502,16 @@ onUnmounted(() => {
   height: 100%;
   background: var(--border-color);
   cursor: col-resize;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, width 0.2s ease;
   flex-shrink: 0;
 
   &:hover {
     background: var(--el-color-primary);
+  }
+
+  &:active {
+    background: var(--el-color-primary);
+    width: 6px;
   }
 }
 

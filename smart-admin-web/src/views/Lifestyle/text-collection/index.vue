@@ -984,6 +984,11 @@ onUnmounted(() => {
     background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary-light-5);
   }
+
+  html[data-theme='dark'] &.active {
+    background: rgba(254, 64, 102, 0.15);
+    border-color: rgba(254, 64, 102, 0.3);
+  }
 }
 
 .text-item-icon {
@@ -1366,19 +1371,54 @@ onUnmounted(() => {
       color: var(--el-color-primary);
       padding: 2px 6px;
       border-radius: 4px;
+      font-size: 0.9em;
     }
 
     pre {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      padding: 16px;
+      background: var(--bg-primary) !important;
+      padding: 0;
       border-radius: 8px;
-      overflow-x: auto;
+      overflow: hidden;
+      margin: 16px 0;
 
       code {
-        background: transparent;
-        padding: 0;
-        color: inherit;
+        display: block;
+        background: transparent !important;
+        padding: 16px;
+        color: #374151 !important;
+        font-size: 14px !important;
+        line-height: 1.6;
+        overflow-x: auto;
+        white-space: pre;
+        font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+
+        // md-editor-v3 代码块内容
+        .md-editor-code-block {
+          color: #374151 !important;
+        }
+
+        // 代码行号
+        .line-number {
+          color: #64748b !important;
+          opacity: 1;
+          user-select: none;
+          min-width: 50px;
+          padding-right: 20px;
+          text-align: right;
+          display: inline-block;
+        }
+
+        // Shell/Bash 语法高亮
+        &.hljs,
+        .hljs {
+          color: #374151 !important;
+
+          .hljs-keyword { color: #d946ef !important; }
+          .hljs-string { color: #059669 !important; }
+          .hljs-comment { color: #6b7280 !important; font-style: italic; }
+          .hljs-number { color: #2563eb !important; }
+          .hljs-variable { color: #ea580c !important; }
+        }
       }
     }
 
@@ -1406,6 +1446,35 @@ onUnmounted(() => {
 
       th {
         background: var(--bg-secondary);
+      }
+    }
+  }
+
+  // 深色模式代码块 - 使用 md-editor-dark 选择器
+  :deep(.md-editor-dark) {
+    .md-editor-preview pre code {
+      color: #e2e8f0 !important;
+      background: #0d1117 !important;
+
+      .md-editor-code-block {
+        color: #e2e8f0 !important;
+      }
+
+      .line-number {
+        color: #6b7280 !important;
+        opacity: 1;
+      }
+
+      // 深色模式 Shell/Bash 语法高亮
+      &.hljs,
+      .hljs {
+        color: #e2e8f0 !important;
+
+        .hljs-keyword { color: #c084fc !important; }
+        .hljs-string { color: #4ade80 !important; }
+        .hljs-comment { color: #6b7280 !important; font-style: italic; }
+        .hljs-number { color: #60a5fa !important; }
+        .hljs-variable { color: #fb923c !important; }
       }
     }
   }

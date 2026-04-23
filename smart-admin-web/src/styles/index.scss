@@ -884,6 +884,89 @@ html .no-transition * {
   transition: none !important;
 }
 
+/* md-editor-v3 代码块样式修复 - 修复行号和代码对齐问题 */
+.md-editor-preview {
+  // 代码块整体样式
+  pre {
+    margin: 16px 0;
+    padding: 0 !important;
+    background: #ffffff !important;
+    border-radius: 8px;
+    overflow: hidden;
+
+    // 代码容器
+    code {
+      display: block;
+      padding: 16px !important;
+      background: transparent !important;
+      color: #374151 !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+      font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace !important;
+      overflow-x: auto;
+      white-space: pre;
+
+      // md-editor-v3 代码块内容
+      .md-editor-code-block {
+        color: #374151 !important;
+      }
+
+      // 行号
+      .line-number {
+        display: inline-block;
+        width: 50px;
+        text-align: right;
+        padding-right: 20px;
+        margin-right: 16px;
+        color: #64748b !important;
+        opacity: 1;
+        user-select: none;
+        font-size: 13px;
+        line-height: 1.6;
+        vertical-align: top;
+      }
+
+      // Shell/Bash 语法高亮
+      &.hljs,
+      .hljs {
+        color: #374151 !important;
+
+        .hljs-keyword { color: #d946ef !important; }
+        .hljs-string { color: #059669 !important; }
+        .hljs-comment { color: #6b7280 !important; }
+        .hljs-number { color: #2563eb !important; }
+        .hljs-variable { color: #ea580c !important; }
+      }
+    }
+  }
+}
+
+/* md-editor-v3 深色模式覆盖 */
+.md-editor-dark {
+  .md-editor-preview pre code {
+    color: #e2e8f0 !important;
+    background: #0d1117 !important;
+
+    .md-editor-code-block {
+      color: #e2e8f0 !important;
+    }
+
+    .line-number {
+      color: #6b7280 !important;
+    }
+
+    &.hljs, .hljs {
+      color: #e2e8f0 !important;
+
+      .hljs-keyword { color: #c084fc !important; }
+      .hljs-string { color: #4ade80 !important; }
+      .hljs-comment { color: #6b7280 !important; }
+      .hljs-number { color: #60a5fa !important; }
+      .hljs-variable { color: #fb923c !important; }
+    }
+  }
+}
+
 /* 主题切换遮罩层不需要过渡 */
 html .theme-transition-overlay,
 html .theme-transition-overlay * {

@@ -55,6 +55,7 @@ npm run lint                         # 代码检查
 |------|------|------|
 | 前端 | http://localhost:3000 | Vite 开发服务器 |
 | 后端 | http://localhost:8080 | Spring Boot |
+| Python AI | http://localhost:8000 | FastAPI（Tool Calling） |
 | API 文档 | http://localhost:8080/doc.html | Knife4j |
 
 详细配置（端口、数据库、JWT等）见后端/前端规范文档。
@@ -73,7 +74,13 @@ smart-admin/
 │           ├── auth/                 # 认证授权
 │           ├── system/               # 系统管理（用户、角色、菜单、API、字典、日志）
 │           ├── dev/                  # 开发工具（数据模型）
-│           └── lifestyle/            # 生活管理（饮食记录、脑暴笔记、任务记录、文本收藏）
+│           ├── lifestyle/            # 生活管理（饮食记录、脑暴笔记、任务记录、文本收藏）
+│           └── ai/                    # AI 聊天助手（调用 Python 微服务）
+│
+├── smart-admin-ai/                   # Python AI 服务（独立运行）
+│   ├── main.py                       # FastAPI 入口
+│   ├── chain/                        # LangChain 对话链
+│   └── config.py                     # 配置管理
 │
 ├── smart-admin-web/                  # Vue 3 前端
 │   └── src/
@@ -91,6 +98,7 @@ smart-admin/
 │       ├── store/                    # Pinia 状态
 │       ├── styles/                   # 全局样式
 │       ├── components/               # 公共组件
+│       │   └── AiChat/              # AI 聊天助手组件
 │       └── utils/                    # 工具函数
 │
 └── sql/                              # 数据库脚本
@@ -135,6 +143,6 @@ sys_user → sys_user_role → sys_role → sys_role_menu → sys_menu → sys_a
 
 ## ⚠️ 重要提醒
 
-**未经用户明确允许，不得自行提交代码（git commit + git push）。**
+**未经用户明确允许，不得自行提交代码（git commit + git push）。注意不要提交密钥等敏感信息**
 
 只有在用户明确说"提交代码"或"可以提交"时才可执行提交操作。

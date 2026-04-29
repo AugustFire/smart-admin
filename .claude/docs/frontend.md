@@ -13,6 +13,7 @@
 ```
 src/
 ├── api/                    # API 封装
+│   ├── ai.ts               # AI 聊天 API
 │   ├── datamodel.ts        # 数据模型 API
 │   └── lifestyle/          # 生活管理 API
 │       ├── diet.ts         # 饮食记录
@@ -20,6 +21,9 @@ src/
 │       ├── task-record.ts  # 任务记录
 │       └── text-collection.ts  # 文本收藏
 ├── components/             # 公共组件
+│   ├── AiChat/            # AI 聊天助手组件
+│   │   ├── ChatDrawer.vue  # 可拖拽聊天窗口
+│   │   └── ChatMessage.vue # 消息气泡
 │   └── DateRangePicker/    # 日期范围选择器
 ├── views/                  # 页面组件
 │   ├── System/             # 系统管理模块
@@ -41,6 +45,8 @@ src/
 │       └── text-collection/ # 文本收藏（编辑/预览分离）
 ├── router/                 # 路由配置
 ├── store/                  # Pinia 状态
+│   └── modules/
+│       └── ai.ts           # AI 聊天状态管理
 ├── utils/                  # 工具函数
 ├── styles/                 # 全局样式
 └── types/                  # TS 类型定义

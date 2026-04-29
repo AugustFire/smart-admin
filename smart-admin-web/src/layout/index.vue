@@ -9,6 +9,7 @@
       </div>
       <AppMain />
     </div>
+    <AiChat />
   </div>
 </template>
 
@@ -19,6 +20,7 @@ import Sidebar from './components/Sidebar/index.vue'
 import Navbar from './components/Navbar/index.vue'
 import TagsView from './components/TagsView/index.vue'
 import AppMain from './components/AppMain/index.vue'
+import AiChat from '@/components/AiChat/index.vue'
 
 const appStore = useAppStore()
 

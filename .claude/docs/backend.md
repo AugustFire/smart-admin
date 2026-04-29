@@ -131,6 +131,27 @@ modules/xxx/                    # 业务模块
 | TaskRecord | 任务记录 | lifestyle_task_record |
 | TextCollection | 文本收藏 | lifestyle_text_collection |
 
+### AI 聊天模块
+
+位于 `modules/ai/`，AI 聊天助手功能，调用 Python 微服务：
+
+| 实体 | 说明 | 对应表 |
+|------|------|--------|
+| AiChatSession | 聊天会话 | ai_chat_session |
+| AiChatMessage | 聊天消息 | ai_chat_message |
+
+**核心接口：**
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/ai/chat` | POST | 发送消息 |
+| `/ai/chat/stream` | POST | 流式发送消息（SSE） |
+| `/ai/history/{sessionKey}` | GET | 获取历史消息 |
+| `/ai/sessions` | GET | 获取会话列表 |
+| `/ai/sessions/{sessionKey}` | DELETE | 删除会话 |
+
+**架构：** Java 后端负责 Session 管理和消息持久化，Python AI 服务（`smart-admin-ai/`）负责 LLM 调用和 Tool Calling。
+
 ## 数据库规范
 
 ### 命名约定

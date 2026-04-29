@@ -113,7 +113,7 @@ smart-admin/
 
 ## 预览截图
 
-![Dashboard Preview](./preview.png)
+![Dashboard Preview](./home.png)
 
 ---
 

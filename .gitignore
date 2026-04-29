@@ -20,6 +20,9 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Auto-generated
+smart-admin-web/src/types/components.d.ts
+
 # Logs
 *.log
 npm-debug.log*

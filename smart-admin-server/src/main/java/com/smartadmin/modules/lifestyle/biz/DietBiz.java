@@ -12,6 +12,7 @@ import com.smartadmin.modules.lifestyle.dto.response.DietRecordResp;
 import com.smartadmin.modules.lifestyle.entity.DietRecord;
 import com.smartadmin.modules.lifestyle.service.DietRecordService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,6 +24,7 @@ import java.util.*;
 /**
  * 饮食记录业务类
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DietBiz {
@@ -120,6 +122,14 @@ public class DietBiz {
      */
     public PageResp<DietRecordResp> pageQuery(DietRecordPageQueryReq req) {
         Long userId = UserContext.getUserId();
+        return pageQueryWithUserId(userId, req);
+    }
+
+    /**
+     * 根据指定用户ID分页查询饮食记录（供AI内部接口使用）
+     */
+    public PageResp<DietRecordResp> pageQueryWithUserId(Long userId, DietRecordPageQueryReq req) {
+        log.info("AI内部接口查询饮食记录: userId={}, startDate={}, endDate={}", userId, req.getStartDate(), req.getEndDate());
 
         IPage<DietRecord> page = dietRecordService.lambdaQuery()
                 .eq(DietRecord::getUserId, userId)
@@ -130,6 +140,8 @@ public class DietBiz {
                 .orderByDesc(DietRecord::getRecordDate)
                 .orderByDesc(DietRecord::getMealTime)
                 .page(new Page<>(req.getPageNum(), req.getPageSize()));
+
+        log.info("查询结果: 总数={}", page.getTotal());
 
         List<DietRecordResp> list = page.getRecords().stream()
                 .map(this::toResp)

@@ -206,6 +206,11 @@ async function handleLogout() {
         border: 2px solid var(--el-color-primary-light-9);
         background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
         color: #fff;
+        --el-avatar-bg-color: transparent;
+
+        :deep(.el-icon) {
+          color: #fff;
+        }
       }
 
       .username {

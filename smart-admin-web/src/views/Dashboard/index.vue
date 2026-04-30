@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container">
+  <div class="app-container">
     <!-- 欢迎横幅 -->
     <div class="welcome-banner">
       <div class="banner-bg">
@@ -19,88 +19,48 @@
       </div>
     </div>
 
-    <!-- 数据卡片 -->
-    <div class="stats-grid">
-      <div class="stat-card" v-for="(stat, index) in stats" :key="index">
-        <div class="stat-icon" :style="{ background: stat.gradient }">
-          <el-icon :size="26"><component :is="stat.icon" /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">
-            <span class="number">{{ stat.value }}</span>
-            <span class="unit">{{ stat.unit }}</span>
-          </div>
-          <div class="stat-label">{{ stat.label }}</div>
-        </div>
+    <!-- 数据概览 -->
+    <div class="overview-section">
+      <div class="overview-item" v-for="item in overview" :key="item.label">
+        <div class="overview-value">{{ item.value }}</div>
+        <div class="overview-label">{{ item.label }}</div>
       </div>
     </div>
 
-    <!-- 三栏布局 -->
-    <div class="three-cols">
+    <!-- 双栏布局 -->
+    <div class="main-grid">
       <!-- 快捷入口 -->
-      <div class="col-section">
-        <div class="section-header">
-          <h3>快捷入口</h3>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">快捷操作</span>
         </div>
-        <div class="shortcuts-grid">
-          <div class="shortcut-item" v-for="item in shortcuts" :key="item.name" @click="handleShortcut(item)">
-            <div class="shortcut-icon" :style="{ background: item.gradient }">
-              <el-icon :size="18"><component :is="item.icon" /></el-icon>
+        <div class="shortcuts-list">
+          <div
+            class="shortcut-row"
+            v-for="item in shortcuts"
+            :key="item.name"
+            @click="handleShortcut(item)"
+          >
+            <div class="shortcut-icon">
+              <el-icon><component :is="item.icon" /></el-icon>
             </div>
-            <span>{{ item.name }}</span>
+            <span class="shortcut-name">{{ item.name }}</span>
+            <el-icon class="shortcut-arrow"><ArrowRight /></el-icon>
           </div>
         </div>
       </div>
 
       <!-- 最新动态 -->
-      <div class="col-section">
-        <div class="section-header">
-          <h3>最新动态</h3>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">最新动态</span>
         </div>
         <div class="activity-list">
-          <div class="activity-item" v-for="(activity, index) in activities" :key="index">
-            <div class="activity-dot" :class="activity.type"></div>
-            <div class="activity-content">
-              <div class="activity-title">{{ activity.title }}</div>
-              <div class="activity-time">{{ activity.time }}</div>
-            </div>
+          <div class="activity-item" v-for="(item, index) in activities" :key="index">
+            <div class="activity-time">{{ item.time }}</div>
+            <div class="activity-title">{{ item.title }}</div>
           </div>
         </div>
-      </div>
-
-      <!-- 待办事项 -->
-      <div class="col-section">
-        <div class="section-header">
-          <h3>待办事项</h3>
-          <el-button type="primary" size="small" text>
-            <el-icon><Plus /></el-icon>
-          </el-button>
-        </div>
-        <div class="todo-list">
-          <div class="todo-item" v-for="(todo, index) in todos" :key="index">
-            <el-checkbox v-model="todo.done" size="small" />
-            <span :class="{ done: todo.done }">{{ todo.text }}</span>
-            <span class="priority-dot" :class="todo.priority"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 系统信息 -->
-    <div class="system-info">
-      <div class="info-item">
-        <el-icon><Monitor /></el-icon>
-        <span>Smart Admin Management System</span>
-      </div>
-      <div class="info-divider"></div>
-      <div class="info-item">
-        <el-icon><Calendar /></el-icon>
-        <span>最后更新：2026-03-26</span>
-      </div>
-      <div class="info-divider"></div>
-      <div class="info-item">
-        <el-icon><Cpu /></el-icon>
-        <span>系统运行正常</span>
       </div>
     </div>
   </div>
@@ -110,7 +70,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
-import { Plus, Monitor, Calendar, Cpu } from '@element-plus/icons-vue'
+import { ArrowRight } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -132,14 +92,7 @@ const greeting = computed(() => {
   return '夜深了'
 })
 
-const quotes = [
-  '每一个不曾起舞的日子，都是对生命的辜负',
-  '人生没有白走的路，每一步都算数',
-  '把每一件简单的事做好就是不简单',
-  '成功不是将来才有的，而是从决定去做的那一刻起',
-  '行动是治愈恐惧的良药，而犹豫将不断滋养恐惧',
-]
-const quote = ref(quotes[Math.floor(Math.random() * quotes.length)])
+const quote = ref('每一天都是新的开始')
 
 function updateTime() {
   const now = new Date()
@@ -156,38 +109,30 @@ onUnmounted(() => {
   clearInterval(timer)
 })
 
-// 统计数据
-const stats = ref([
-  { label: '在线用户', value: '128', unit: '人', icon: 'User', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  { label: '今日访问', value: '3,842', unit: '次', icon: 'View', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-  { label: '系统模块', value: '12', unit: '个', icon: 'Grid', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-  { label: 'API 接口', value: '86', unit: '个', icon: 'Connection', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+// 数据概览
+const overview = ref([
+  { label: '在线用户', value: '128' },
+  { label: '今日访问', value: '3,842' },
+  { label: '系统模块', value: '12' },
+  { label: 'API 接口', value: '86' },
 ])
 
 // 快捷入口
 const shortcuts = ref([
-  { name: '用户管理', icon: 'User', path: '/system/user', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  { name: '角色管理', icon: 'Peoples', path: '/system/role', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-  { name: '菜单管理', icon: 'Menu', path: '/system/menu', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-  { name: 'API 管理', icon: 'Connection', path: '/system/api', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
-  { name: '字典管理', icon: 'Collection', path: '/system/dict', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
-  { name: '操作日志', icon: 'Document', path: '/system/operlog', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+  { name: '用户管理', icon: 'User', path: '/system/user' },
+  { name: '角色管理', icon: 'Peoples', path: '/system/role' },
+  { name: '菜单管理', icon: 'Menu', path: '/system/menu' },
+  { name: 'API 管理', icon: 'Connection', path: '/system/api' },
+  { name: '字典管理', icon: 'Collection', path: '/system/dict' },
+  { name: '操作日志', icon: 'Document', path: '/system/operlog' },
 ])
 
 // 最新动态
 const activities = ref([
-  { title: '管理员创建了新用户 zhangsan', time: '10 分钟前', type: 'success' },
-  { title: '管理员修改了角色权限', time: '1 小时前', type: 'warning' },
-  { title: '管理员更新了菜单配置', time: '2 小时前', type: 'info' },
-  { title: '数据库自动备份完成', time: '今天 08:00', type: 'primary' },
-])
-
-// 待办事项
-const todos = ref([
-  { text: '审核新用户注册申请', done: false, priority: 'danger' },
-  { text: '配置 API 接口权限', done: false, priority: 'warning' },
-  { text: '更新系统操作文档', done: true, priority: 'info' },
-  { text: '检查系统安全日志', done: false, priority: 'warning' },
+  { title: '管理员创建了新用户 zhangsan', time: '10:20' },
+  { title: '管理员修改了角色权限配置', time: '09:15' },
+  { title: '系统菜单配置已更新', time: '08:00' },
+  { title: '数据库自动备份完成', time: '昨天' },
 ])
 
 function handleShortcut(item: any) {
@@ -196,17 +141,24 @@ function handleShortcut(item: any) {
 </script>
 
 <style lang="scss" scoped>
-.dashboard-container {
-  padding: 0;
+// ============================================
+// 全局容器
+// ============================================
+.app-container {
+  padding: 20px;
+  background-color: var(--app-main-bg-color);
+  min-height: calc(100vh - 84px);
 }
 
-// 欢迎横幅
+// ============================================
+// 欢迎横幅 - 保持原样
+// ============================================
 .welcome-banner {
   position: relative;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  border-radius: 20px;
-  padding: 40px 48px;
-  margin-bottom: 24px;
+  border-radius: 12px;
+  padding: 32px 36px;
+  margin-bottom: 20px;
   overflow: hidden;
 
   .banner-bg {
@@ -257,15 +209,15 @@ function handleShortcut(item: any) {
 
   .welcome-text {
     .greeting {
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 26px;
+      font-weight: 600;
       color: #fff;
-      margin: 0 0 8px;
+      margin: 0 0 6px;
     }
 
     .subline {
-      font-size: 15px;
-      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
       margin: 0;
     }
   }
@@ -275,306 +227,206 @@ function handleShortcut(item: any) {
     color: #fff;
 
     .date {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 4px;
+      font-size: 13px;
+      opacity: 0.75;
+      margin-bottom: 2px;
     }
 
     .time {
-      font-size: 42px;
+      font-size: 28px;
       font-weight: 300;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       font-variant-numeric: tabular-nums;
     }
   }
 }
 
-// 统计卡片
-.stats-grid {
+// ============================================
+// 数据概览
+// ============================================
+.overview-section {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.stat-card {
+.overview-item {
   background: var(--bg-primary);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
   border: 1px solid var(--border-color);
-  transition: all 0.2s;
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 
-  .stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-  }
-
-  .stat-content {
-    .stat-value {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-
-      .number {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-primary);
-      }
-
-      .unit {
-        font-size: 12px;
-        color: var(--text-secondary);
-      }
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-  }
-}
-
-// 三栏布局
-.three-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.col-section {
-  background: var(--bg-primary);
-  border-radius: 14px;
-  padding: 20px;
-  border: 1px solid var(--border-color);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-
-  h3 {
-    font-size: 16px;
+  .overview-value {
+    font-size: 22px;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+
+  .overview-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
   }
 }
 
-// 快捷入口
-.shortcuts-grid {
+// ============================================
+// 双栏布局
+// ============================================
+.main-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-.shortcut-item {
+.panel {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color-light);
+  background: var(--bg-secondary);
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+// ============================================
+// 快捷入口
+// ============================================
+.shortcuts-list {
+  padding: 8px 0;
+}
+
+.shortcut-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 10px;
+  gap: 12px;
+  padding: 12px 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    background: var(--bg-tertiary);
-    transform: translateX(4px);
+    background: var(--bg-secondary);
+
+    .shortcut-arrow {
+      opacity: 1;
+      transform: translateX(2px);
+    }
   }
 
   .shortcut-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
+    background: var(--el-color-primary-light-9);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
     flex-shrink: 0;
-  }
-
-  span {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-regular);
-  }
-}
-
-// 动态列表
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-color-light);
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  .activity-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-top: 6px;
-    flex-shrink: 0;
-
-    &.success { background: #10b981; }
-    &.warning { background: #f59e0b; }
-    &.info { background: #64748b; }
-    &.primary { background: var(--el-color-primary); }
-  }
-
-  .activity-content {
-    flex: 1;
-    min-width: 0;
-
-    .activity-title {
-      font-size: 13px;
-      color: var(--text-primary);
-      line-height: 1.4;
-    }
-
-    .activity-time {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-  }
-}
-
-// 待办事项
-.todo-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-
-  span {
-    flex: 1;
-    font-size: 13px;
-    color: var(--text-primary);
-
-    &.done {
-      text-decoration: line-through;
-      color: var(--text-secondary);
-    }
-  }
-
-  .priority-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-
-    &.danger { background: #ef4444; }
-    &.warning { background: #f59e0b; }
-    &.info { background: #64748b; }
-  }
-}
-
-// 系统信息
-.system-info {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 14px 20px;
-  background: var(--bg-primary);
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-
-  .info-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-secondary);
 
     .el-icon {
-      font-size: 15px;
+      font-size: 16px;
       color: var(--el-color-primary);
     }
   }
 
-  .info-divider {
-    width: 1px;
-    height: 14px;
-    background: var(--border-color);
+  .shortcut-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-regular);
+  }
+
+  .shortcut-arrow {
+    font-size: 14px;
+    color: var(--text-placeholder);
+    opacity: 0;
+    transition: all 0.15s ease;
   }
 }
 
+// ============================================
+// 最新动态
+// ============================================
+.activity-list {
+  padding: 12px 20px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border-color-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .activity-time {
+    font-size: 12px;
+    color: var(--text-placeholder);
+    min-width: 48px;
+    flex-shrink: 0;
+  }
+
+  .activity-title {
+    font-size: 14px;
+    color: var(--text-regular);
+    line-height: 1.4;
+  }
+}
+
+// ============================================
+// 响应式
+// ============================================
 @media (max-width: 1200px) {
-  .stats-grid {
+  .overview-section {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .three-cols {
-    grid-template-columns: 1fr 1fr;
+  .main-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   .welcome-banner {
-    padding: 28px;
+    padding: 24px;
 
     .banner-content {
       flex-direction: column;
       text-align: center;
+      gap: 16px;
     }
 
     .welcome-text .greeting {
-      font-size: 26px;
+      font-size: 22px;
     }
 
     .date-info {
       text-align: center;
-      margin-top: 16px;
-
-      .time {
-        font-size: 32px;
-      }
     }
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .three-cols {
-    grid-template-columns: 1fr;
+  .overview-section {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 }
 </style>

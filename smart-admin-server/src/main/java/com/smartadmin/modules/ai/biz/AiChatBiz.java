@@ -107,8 +107,9 @@ public class AiChatBiz {
                             writer.write("data: [SESSION_KEY]" + sessionKey + "\n\n");
                             firstRealData = false;
                         }
-                        fullContent.append(data);
-                        writer.write("data: " + data + "\n\n");
+                        fullContent.append(data).append("\n");
+                        // data: 格式（无空格），空数据时 JS 读 slice(6) = "" 而非空格
+                        writer.write("data:" + data + "\n\n");
                         writer.flush();
                     }
                 }

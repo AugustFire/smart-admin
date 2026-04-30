@@ -36,6 +36,7 @@ export const useAiStore = defineStore('ai', {
 
     openDrawer() {
       this.isDrawerOpen = true
+      this.loadSessions()
     },
 
     closeDrawer() {
@@ -108,16 +109,19 @@ export const useAiStore = defineStore('ai', {
           buffer = lines.pop() || ''
 
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim()
+            if (line.startsWith('data:')) {
+              const data = line.slice(5).trim()
 
               if (data === '[DONE]') {
                 break
+              } else if (data.startsWith('[SESSION_KEY]')) {
+                const key = data.slice(13)
+                this.currentSessionKey = key
               } else if (data.startsWith('[ERROR]')) {
                 this.messages[aiMessageIndex].content = data.slice(7)
                 break
               } else if (!data.startsWith('[TOOL_RESULT]')) {
-                this.streamingContent += data
+                this.streamingContent += data + '\n'
                 this.messages[aiMessageIndex].content = this.streamingContent
               }
             }

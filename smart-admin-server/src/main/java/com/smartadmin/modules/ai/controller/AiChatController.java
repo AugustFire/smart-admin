@@ -26,12 +26,6 @@ public class AiChatController {
 
     private final AiChatBiz aiChatBiz;
 
-    @Operation(summary = "发送消息")
-    @PostMapping("/chat")
-    public Result<ChatResp> chat(@Valid @RequestBody ChatReq req) {
-        return Result.success(aiChatBiz.chat(req));
-    }
-
     @Operation(summary = "发送消息（流式）")
     @PostMapping(value = "/chat/stream", produces = "text/event-stream;charset=UTF-8")
     public void chatStream(@Valid @RequestBody ChatReq req, HttpServletResponse response) {

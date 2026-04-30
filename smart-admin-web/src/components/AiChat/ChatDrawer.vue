@@ -45,12 +45,26 @@
     <div class="window-body">
       <div v-if="!aiStore.hasMessages" class="welcome">
         <div class="welcome-icon">
-          <el-icon size="40"><ChatLineSquare /></el-icon>
+          <svg viewBox="0 0 80 80" fill="none" width="70" height="70">
+            <!-- 青蛙身体 -->
+            <ellipse cx="40" cy="48" rx="26" ry="18" fill="#4ADE80"/>
+            <!-- 左眼鼓起 - 青蛙标志特征 -->
+            <ellipse cx="22" cy="28" rx="10" ry="9" fill="#4ADE80"/>
+            <circle cx="22" cy="28" r="5" fill="#fff"/>
+            <circle cx="24" cy="27" r="2" fill="#1e293b"/>
+            <!-- 右眼鼓起 -->
+            <ellipse cx="58" cy="28" rx="10" ry="9" fill="#4ADE80"/>
+            <circle cx="58" cy="28" r="5" fill="#fff"/>
+            <circle cx="56" cy="27" r="2" fill="#1e293b"/>
+            <!-- 宽嘴巴 -->
+            <path d="M28 52 Q40 58 52 52" stroke="#166534" stroke-width="2" stroke-linecap="round"/>
+          </svg>
         </div>
-        <p class="welcome-text">你好！我是 AI 助手</p>
+        <p class="welcome-text">你好！我是 AI 助手小青蛙</p>
         <div class="suggestions">
           <div class="suggestion" @click="handleSuggestion('帮我查下北京天气')">查天气</div>
           <div class="suggestion" @click="handleSuggestion('查询用户ID=1的信息')">查用户</div>
+          <div class="suggestion" @click="handleSuggestion('分析我最近的饮食记录')">饮食分析</div>
           <div class="suggestion" @click="handleSuggestion('1+2*3等于多少')">计算</div>
         </div>
       </div>
@@ -104,9 +118,19 @@
       <div class="ai-ring"></div>
       <div class="ai-ring ai-ring-2"></div>
       <div class="ai-core">
-        <svg viewBox="0 0 40 40" fill="none">
-          <!-- AI 艺术字 -->
-          <text x="20" y="28" text-anchor="middle" fill="white" font-size="22" font-weight="bold" font-family="Arial, sans-serif">AI</text>
+        <svg viewBox="0 0 50 50" fill="none" width="44" height="44">
+          <!-- 青蛙身体 -->
+          <ellipse cx="25" cy="32" rx="18" ry="12" fill="#4ADE80"/>
+          <!-- 左眼鼓起 -->
+          <ellipse cx="14" cy="20" rx="7" ry="6" fill="#4ADE80"/>
+          <circle cx="14" cy="20" r="4" fill="#fff"/>
+          <circle cx="15" cy="19" r="1.5" fill="#1e293b"/>
+          <!-- 右眼鼓起 -->
+          <ellipse cx="36" cy="20" rx="7" ry="6" fill="#4ADE80"/>
+          <circle cx="36" cy="20" r="4" fill="#fff"/>
+          <circle cx="35" cy="19" r="1.5" fill="#1e293b"/>
+          <!-- 嘴巴 -->
+          <path d="M18 35 Q25 39 32 35" stroke="#166534" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
       <div class="ai-pulse"></div>
@@ -130,7 +154,6 @@ const windowPos = ref({ left: 0, top: 0 })
 
 onMounted(() => {
   resetPosition()
-  aiStore.loadSessions()
 })
 
 const resetPosition = () => {
@@ -372,15 +395,17 @@ const handleSuggestion = (text: string) => {
   }
 }
 
+// 科技感悬浮按钮 - 仅增强 fab，窗口保持与系统主题一致
 .ai-chat-fab {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   cursor: pointer;
   z-index: 2025;
+  outline: none;
 
   .ai-icon {
     position: relative;
@@ -406,37 +431,28 @@ const handleSuggestion = (text: string) => {
   }
 
   .ai-core {
-    position: relative;
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--el-color-primary) 0%, #8B5CF6 100%);
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 25px rgba(254, 64, 102, 0.6), 0 0 50px rgba(139, 92, 246, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 
     svg {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
     }
   }
 
   .ai-pulse {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--el-color-primary), #8B5CF6);
-    opacity: 0;
-    animation: pulse-glow 2s ease-out infinite;
+    display: none;
   }
 
   &:hover {
     .ai-core {
-      transform: scale(1.15);
-      box-shadow: 0 0 40px rgba(254, 64, 102, 0.8), 0 0 60px rgba(139, 92, 246, 0.5);
+      transform: scale(1.1);
     }
   }
 }
@@ -448,17 +464,6 @@ const handleSuggestion = (text: string) => {
   }
   100% {
     transform: scale(1.4);
-    opacity: 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0% {
-    transform: scale(1);
-    opacity: 0.4;
-  }
-  100% {
-    transform: scale(1.6);
     opacity: 0;
   }
 }

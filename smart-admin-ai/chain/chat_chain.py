@@ -81,10 +81,11 @@ class ChatChain:
                 # 如果没有 tool_calls，流式返回内容
                 if not response.tool_calls:
                     content = response.content or ""
-                    # 逐字流式返回（模拟打字机效果）
-                    for char in content:
-                        yield {"type": "content", "content": char}
-                        await asyncio.sleep(0.02)  # 打字速度
+                    # 按行流式返回，保留 markdown 格式
+                    for line in content.split('\n'):
+                        # 空行发空字符串（Java 会写 data:\n\n），非空行发原内容（Java 加 \n\n）
+                        yield {"type": "content", "content": line}
+                        await asyncio.sleep(0.05)  # 打字速度
                     messages.append(response)
                     return
 

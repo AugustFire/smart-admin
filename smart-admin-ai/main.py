@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 
 from config import config
-from models.schemas import ChatRequest, ChatResponse, Message
+from models.schemas import ChatRequest, Message
 from chain.chat_chain import get_chat_chain
 
 # 配置日志
@@ -85,6 +85,7 @@ async def chat_stream(request: ChatRequest):
                 async for chunk in chat_chain.stream_chat(
                     message=request.message,
                     history=history,
+                    user_id=request.user_id,
                 ):
                     # 处理不同的 chunk 类型
                     if isinstance(chunk, dict):
@@ -129,40 +130,6 @@ async def chat_stream(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    """
-    聊天接口（非流式）
-
-    接收用户消息，调用 LangChain Agent 返回回答
-    """
-    try:
-        logger.info(f"收到消息: session_id={request.session_id}, message={request.message[:50]}...")
-
-        chat_chain = get_chat_chain()
-        history = request.history or []
-
-        answer, tool_calls = chat_chain.chat(
-            message=request.message,
-            history=history,
-        )
-
-        # 保存到会话存储
-        if request.session_id not in chat_sessions:
-            chat_sessions[request.session_id] = []
-        chat_sessions[request.session_id].append(Message(role="user", content=request.message))
-        chat_sessions[request.session_id].append(Message(role="assistant", content=answer))
-
-        return ChatResponse(
-            answer=answer,
-            session_id=request.session_id,
-            tool_calls=tool_calls,
-            model=config.OPENAI_MODEL,
-        )
-
-    except Exception as e:
-        logger.error(f"Chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/history/{session_id}")

@@ -30,6 +30,7 @@ DEEPSEEK_MODEL=deepseek-chat
 
 ```bash
 python main.py
+source venv/Scripts/activate && python main.py
 ```
 
 或使用 uvicorn：

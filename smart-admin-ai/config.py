@@ -23,5 +23,9 @@ class Config:
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 8000))
 
+    """Java 后端配置"""
+    JAVA_BASE_URL = os.getenv("JAVA_BASE_URL", "http://localhost:8080")
+    JAVA_API_KEY = os.getenv("JAVA_API_KEY", "")  # JWT token
+
 
 config = Config()

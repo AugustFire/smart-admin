@@ -46,7 +46,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/doc.html",             // Knife4j 文档
                         "/webjars/**",           // Swagger 静态资源
                         "/v3/api-docs/**",       // OpenAPI 文档
-                        "/favicon.ico"           // 图标
+                        "/favicon.ico",          // 图标
+                        "/api/ai/internal/**"    // AI 内部接口（Python 服务调用）
                 )
                 .order(1);
 
@@ -59,7 +60,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/doc.html",             // Knife4j 文档
                         "/webjars/**",           // Swagger 静态资源
                         "/v3/api-docs/**",       // OpenAPI 文档
-                        "/favicon.ico"           // 图标
+                        "/favicon.ico",          // 图标
+                        "/api/ai/internal/**"   // AI 内部接口（Python 服务调用）
                 )
                 .order(2);
     }

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { UserInfo } from '@/types/user'
 import { loginApi, getUserInfoApi, logoutApi } from '@/api/auth'
 import { useTagsViewStore } from './tagsView'
+import { useAiStore } from './ai'
 
 interface UserState {
   token: string
@@ -77,6 +78,10 @@ export const useUserStore = defineStore('user', {
         console.error('登出失败:', error)
       } finally {
         this.reset()
+        // 清理 AI store，避免聊天记录泄露
+        const aiStore = useAiStore()
+        aiStore.$reset()
+        localStorage.removeItem('ai-store')
       }
     },
 

@@ -1,6 +1,5 @@
 package com.smartadmin.modules.ai.biz;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartadmin.modules.ai.config.AiProperties;
 import com.smartadmin.modules.ai.dto.request.ChatReq;
@@ -15,11 +14,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,36 +30,13 @@ public class AiChatBiz {
     private final AiSessionService sessionService;
     private final AiMessageService messageService;
     private final AiProperties aiProperties;
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     private static final String DEFAULT_SESSION_TITLE = "新对话";
 
-    public ChatResp chat(ChatReq req) {
-        Long userId = UserContext.getUserId();
-        AiChatSession session = getOrCreateSession(req.getSessionKey(), userId);
-        saveMessage(session, req.getContent(), "user");
-
-        String aiResponse = callAiService(session.getSessionKey(), req.getContent());
-        saveMessage(session, aiResponse, "assistant");
-
-        if (DEFAULT_SESSION_TITLE.equals(session.getTitle())) {
-            updateSessionTitle(session, req.getContent());
-        }
-
-        ChatResp resp = new ChatResp();
-        resp.setSessionKey(session.getSessionKey());
-        resp.setContent(aiResponse);
-        resp.setRole("assistant");
-        resp.setModel(session.getModel());
-        return resp;
-    }
-
     public void chatStream(ChatReq req, HttpServletResponse response) {
         Long userId = UserContext.getUserId();
         AiChatSession session = getOrCreateSession(req.getSessionKey(), userId);
-        saveMessage(session, req.getContent(), "user");
-
         final String sessionKey = session.getSessionKey();
 
         // 设置 SSE 响应头
@@ -89,54 +65,59 @@ public class AiChatBiz {
             conn.setReadTimeout(30000);
 
             // 发送请求
-            String jsonBody = objectMapper.writeValueAsString(Map.of(
-                "session_id", sessionKey,
-                "message", req.getContent()
-            ));
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("session_id", sessionKey);
+            requestBody.put("message", req.getContent());
+            requestBody.put("user_id", userId);
+
+            // 从数据库获取所有消息历史（此时还没保存当前消息，所以不会重复）
+            List<AiChatMessage> allMessages = messageService.getBySessionId(session.getId());
+            if (!allMessages.isEmpty()) {
+                List<Map<String, String>> history = new ArrayList<>();
+                for (AiChatMessage msg : allMessages) {
+                    history.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
+                }
+                requestBody.put("history", history);
+            }
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+            log.info("调用 Python 请求: {}", jsonBody);
             conn.getOutputStream().write(jsonBody.getBytes(StandardCharsets.UTF_8));
             conn.getOutputStream().flush();
 
             // 读取并转发响应
             StringBuilder fullContent = new StringBuilder();
-            byte[] buffer = new byte[1024];
-            int len;
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
 
-            while ((len = conn.getInputStream().read(buffer)) != -1) {
-                String chunk = new String(buffer, 0, len, StandardCharsets.UTF_8);
+            boolean firstRealData = true;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("data: ")) {
+                    String data = line.substring(6);
 
-                // 解析 SSE：找出所有 data: 开头的行
-                StringBuilder lineBuf = new StringBuilder();
-                for (int i = 0; i < chunk.length(); i++) {
-                    char c = chunk.charAt(i);
-                    if (c == '\n') {
-                        String line = lineBuf.toString().trim();
-                        lineBuf = new StringBuilder();
-
-                        if (line.startsWith("data: ")) {
-                            String data = line.substring(6);
-
-                            if (data.equals("[DONE]")) {
-                                break;
-                            } else if (data.startsWith("[TOOL_RESULT]")) {
-                                // 跳过 tool 结果
-                            } else if (data.startsWith("[ERROR]")) {
-                                writer.write("data: " + data + "\n\n");
-                                writer.flush();
-                            } else {
-                                fullContent.append(data);
-                                writer.write("data: " + data + "\n\n");
-                                writer.flush();
-                            }
-                        }
+                    if (data.equals("[DONE]")) {
+                        break;
+                    } else if (data.startsWith("[TOOL_RESULT]")) {
+                        // 跳过 tool 结果
+                    } else if (data.startsWith("[ERROR]")) {
+                        writer.write("data: " + data + "\n\n");
+                        writer.flush();
                     } else {
-                        lineBuf.append(c);
+                        if (firstRealData) {
+                            writer.write("data: [SESSION_KEY]" + sessionKey + "\n\n");
+                            firstRealData = false;
+                        }
+                        fullContent.append(data);
+                        writer.write("data: " + data + "\n\n");
+                        writer.flush();
                     }
                 }
             }
 
             conn.disconnect();
 
-            // 保存 AI 消息
+            // 保存用户消息和 AI 消息
+            saveMessage(session, req.getContent(), "user");
             if (!fullContent.isEmpty()) {
                 saveMessage(session, fullContent.toString(), "assistant");
                 if (DEFAULT_SESSION_TITLE.equals(session.getTitle())) {
@@ -224,26 +205,5 @@ public class AiChatBiz {
         String title = content.length() > 30 ? content.substring(0, 30) + "..." : content;
         session.setTitle(title);
         sessionService.updateById(session);
-    }
-
-    private String callAiService(String sessionKey, String message) {
-        try {
-            String url = aiProperties.getBaseUrl() + "/chat";
-            Map<String, Object> requestBody = Map.of(
-                    "session_id", sessionKey,
-                    "message", message
-            );
-
-            JsonNode responseNode = restTemplate.postForObject(url, requestBody, JsonNode.class);
-
-            if (responseNode != null && responseNode.has("answer")) {
-                return responseNode.get("answer").asText();
-            }
-            return "抱歉，AI 服务暂时无法回复";
-
-        } catch (Exception e) {
-            log.error("调用 AI 服务失败", e);
-            return "抱歉，AI 服务暂时无法回复：" + e.getMessage();
-        }
     }
 }

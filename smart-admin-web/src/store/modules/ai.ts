@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { chatApi, getHistoryApi, getSessionsApi, deleteSessionApi, ChatMessage, ChatSession } from '@/api/ai'
+import { getHistoryApi, getSessionsApi, deleteSessionApi, ChatMessage, ChatSession } from '@/api/ai'
 import { useUserStore } from '@/store/modules/user'
 
 interface AiState {

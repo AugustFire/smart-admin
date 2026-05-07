@@ -2,8 +2,9 @@
   <div
     v-if="aiStore.isDrawerOpen"
     class="ai-chat-window"
-    :style="{ left: windowPos.left + 'px', top: windowPos.top + 'px' }"
-    @mousedown="startDrag"
+    :class="{ 'is-pinned': isPinned }"
+    :style="isPinned ? pinnedStyle : { left: windowPos.left + 'px', top: windowPos.top + 'px' }"
+    @mousedown="handleWindowMouseDown"
   >
     <!-- 标题栏 -->
     <div class="window-header">
@@ -32,6 +33,9 @@
         </template>
       </el-dropdown>
       <div class="actions">
+        <el-button text size="small" @click="handlePin" :class="{ 'is-active': isPinned }">
+          <el-icon><Paperclip /></el-icon>
+        </el-button>
         <el-button text size="small" @click="handleNewChat">
           <el-icon><Plus /></el-icon>
         </el-button>
@@ -62,10 +66,14 @@
         </div>
         <p class="welcome-text">你好！我是 AI 助手小青蛙</p>
         <div class="suggestions">
-          <div class="suggestion" @click="handleSuggestion('帮我查下北京天气')">查天气</div>
-          <div class="suggestion" @click="handleSuggestion('查询用户ID=1的信息')">查用户</div>
-          <div class="suggestion" @click="handleSuggestion('分析我最近的饮食记录')">饮食分析</div>
-          <div class="suggestion" @click="handleSuggestion('1+2*3等于多少')">计算</div>
+          <div
+            v-for="item in suggestions"
+            :key="item.text"
+            class="suggestion"
+            @click="handleSuggestion(item.text)"
+          >
+            {{ item.label }}
+          </div>
         </div>
       </div>
 
@@ -87,29 +95,34 @@
 
     <!-- 输入框 -->
     <div class="window-footer">
-      <el-input
-        v-model="inputText"
-        placeholder="输入消息，Enter 发送..."
-        :disabled="aiStore.isLoading && !aiStore.isGenerating"
-        @keyup.enter="handleSend"
-      >
-        <template #append>
-          <el-button
-            v-if="aiStore.isGenerating"
-            type="danger"
-            @click="aiStore.stopGeneration"
-          >
-            <el-icon><Close /></el-icon>
+      <div class="input-wrapper">
+        <el-dropdown trigger="click" @command="handleSuggestion">
+          <el-button class="add-btn" text>
+            <el-icon><Plus /></el-icon>
           </el-button>
-          <el-button
-            v-else
-            :disabled="!inputText.trim() || aiStore.isLoading"
-            @click="handleSend"
-          >
-            <el-icon><Promotion /></el-icon>
-          </el-button>
-        </template>
-      </el-input>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-for="item in suggestions"
+                :key="item.text"
+                :command="item.text"
+              >
+                {{ item.label }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-input
+          ref="inputRef"
+          v-model="inputText"
+          type="textarea"
+          placeholder="输入消息，Enter 发送，Shift+Enter 换行..."
+          :disabled="aiStore.isLoading && !aiStore.isGenerating"
+          :autosize="{ minRows: 1, maxRows: 4 }"
+          resize="none"
+          @keydown.enter="handleEnterKey"
+        />
+      </div>
     </div>
   </div>
 
@@ -140,13 +153,21 @@
 
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted, onUnmounted, computed } from 'vue'
-import { Plus, Close, ChatLineSquare, Promotion, Loading, ArrowDown } from '@element-plus/icons-vue'
+import { Plus, Close, ChatLineSquare, Promotion, Loading, ArrowDown, Paperclip } from '@element-plus/icons-vue'
 import { useAiStore } from '@/store/modules/ai'
 import ChatMessage from './ChatMessage.vue'
 
 const aiStore = useAiStore()
 const inputText = ref('')
+const inputRef = ref<HTMLTextAreaElement>()
 const messageListRef = ref<HTMLElement>()
+
+const suggestions = [
+  { label: '查天气', text: '帮我查下北京的天气' },
+  { label: '查用户', text: '查询用户ID=1的信息' },
+  { label: '饮食分析', text: '分析我最近的饮食记录' },
+  { label: '计算', text: '1+2*3等于多少' },
+]
 
 const windowWidth = 400
 const windowHeight = 560
@@ -170,6 +191,24 @@ const currentSessionTitle = computed(() => {
   const session = aiStore.sessions.find(s => s.sessionKey === aiStore.currentSessionKey)
   return session?.title || '新对话'
 })
+
+const isPinned = ref(false)
+const pinnedStyle = ref({
+  right: '0px',
+  top: '0px',
+  left: 'auto',
+  width: '420px',
+  height: '100vh',
+})
+
+const handlePin = () => {
+  isPinned.value = !isPinned.value
+}
+
+const handleWindowMouseDown = (e: MouseEvent) => {
+  if (isPinned.value) return
+  startDrag(e)
+}
 
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
@@ -273,6 +312,16 @@ const handleCommand = (command: string) => {
 
 const handleSuggestion = (text: string) => {
   inputText.value = text
+  nextTick(() => {
+    inputRef.value?.focus()
+  })
+}
+
+const handleEnterKey = (e: KeyboardEvent) => {
+  if (e.shiftKey) {
+    return
+  }
+  e.preventDefault()
   handleSend()
 }
 </script>
@@ -289,6 +338,13 @@ const handleSuggestion = (text: string) => {
   flex-direction: column;
   z-index: 2025;
   overflow: hidden;
+
+  &.is-pinned {
+    border-radius: 0;
+    border-left: none;
+    height: 100vh;
+    width: 420px;
+  }
 }
 
 .window-header {
@@ -313,6 +369,10 @@ const handleSuggestion = (text: string) => {
   .actions {
     display: flex;
     gap: 2px;
+
+    :deep(.el-button.is-active .el-icon) {
+      color: var(--el-color-primary);
+    }
   }
 }
 
@@ -390,8 +450,43 @@ const handleSuggestion = (text: string) => {
   padding: 10px 12px 14px;
   border-top: 1px solid var(--el-border-color-lighter);
 
-  :deep(.el-input__wrapper) {
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color);
+    flex-shrink: 0;
+
+    .el-icon {
+      color: var(--el-color-primary);
+      font-size: 18px;
+    }
+
+    &:hover {
+      background: var(--el-color-primary-light-9);
+      border-color: var(--el-color-primary);
+    }
+  }
+
+  :deep(.el-input) {
+    flex: 1;
+  }
+
+  :deep(.el-input__wrapper),
+  :deep(.el-textarea__inner) {
     border-radius: 20px;
+    padding: 8px 16px;
+  }
+
+  :deep(.el-textarea__inner) {
+    resize: none;
   }
 }
 

@@ -41,22 +41,44 @@ const renderContent = (content: string) => {
 </script>
 
 <style lang="scss" scoped>
+// AI 助手专用 CSS 变量
+$ai-primary: var(--el-color-primary, #409eff);
+$ai-neon-hue: calc(var(--el-color-primary-hue, 210) * 1deg);
+$ai-cyan: hsl($ai-neon-hue, 100%, 65%);
+$ai-violet: hsl(calc($ai-neon-hue + 60deg), 80%, 60%);
+$ai-glow: hsla($ai-neon-hue, 100%, 65%, 0.4);
+
 .chat-message {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   max-width: 85%;
+  animation: message-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.is-user {
     flex-direction: row-reverse;
     align-self: flex-end;
 
     .message-bubble {
-      background: var(--el-color-primary);
+      background: linear-gradient(
+        135deg,
+        var(--el-color-primary, #409eff) 0%,
+        var(--el-color-primary-light-3, #79bbff) 100%
+      );
       color: #fff;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow:
+        0 0 20px hsla(var(--el-color-primary-hue, 210), 100%, 50%, 0.25),
+        0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .message-time {
       text-align: right;
+    }
+
+    .message-avatar {
+      background: linear-gradient(135deg, $ai-cyan 0%, $ai-violet 100%);
+      border: 1px solid $ai-cyan;
+      box-shadow: 0 0 12px $ai-glow;
     }
   }
 
@@ -64,33 +86,62 @@ const renderContent = (content: string) => {
     align-self: flex-start;
 
     .message-bubble {
-      background: var(--el-fill-color);
+      background: hsla($ai-neon-hue, 60%, 50%, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid hsla($ai-neon-hue, 60%, 50%, 0.2);
+      border-radius: 18px 18px 18px 4px;
+      color: var(--el-text-color-primary);
+      box-shadow:
+        0 0 15px hsla($ai-neon-hue, 80%, 60%, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .message-avatar {
+      background: linear-gradient(135deg, $ai-violet 0%, $ai-cyan 100%);
+      border: 1px solid $ai-violet;
+      box-shadow: 0 0 12px hsla(calc($ai-neon-hue + 60deg), 80%, 60%, 0.4);
     }
   }
 }
 
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .message-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--el-color-primary-light-8);
-  color: var(--el-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  :deep(.el-icon) {
+    font-size: 18px;
+  }
 }
 
-.is-user .message-bubble {
-  :deep(pre) {
-    background: rgba(0, 0, 0, 0.2);
+.is-user {
+  .message-avatar {
+    background: var(--el-color-primary);
     color: #fff;
+    box-shadow: 0 0 12px hsla(var(--el-color-primary-hue, 210), 100%, 50%, 0.4);
   }
-  :deep(code) {
-    background: rgba(0, 0, 0, 0.15);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 13px;
+}
+
+.chat-message:not(.is-user) {
+  .message-avatar {
+    background: linear-gradient(135deg, $ai-violet 0%, $ai-cyan 100%);
+    color: #fff;
+    box-shadow: 0 0 12px hsla(calc($ai-neon-hue + 60deg), 80%, 60%, 0.4);
   }
 }
 
@@ -117,26 +168,32 @@ const renderContent = (content: string) => {
   }
 
   :deep(pre) {
-    background: var(--el-fill-color-dark);
-    color: var(--el-text-color-primary);
-    padding: 12px;
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid hsla($ai-neon-hue, 60%, 50%, 0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
     overflow-x: auto;
-    margin: 8px 0;
+    margin: 10px 0;
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.3),
+      0 0 20px hsla($ai-neon-hue, 100%, 65%, 0.05);
+
     code {
       background: none;
       padding: 0;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.6;
+      color: #a5f3fc;
     }
   }
 
   :deep(code) {
-    background: var(--el-fill-color-light);
-    padding: 2px 6px;
-    border-radius: 4px;
+    background: hsla($ai-neon-hue, 100%, 65%, 0.12);
+    color: $ai-cyan;
+    padding: 3px 8px;
+    border-radius: 6px;
     font-size: 13px;
-    font-family: 'Fira Code', 'Consolas', monospace;
+    font-family: 'Fira Code', 'JetBrains Mono', Consolas, monospace;
   }
 
   :deep(strong) {

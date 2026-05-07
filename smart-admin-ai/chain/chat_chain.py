@@ -13,15 +13,15 @@ from chain.tools import SYSTEM_TOOLS, set_user_id
 logger = logging.getLogger(__name__)
 
 
-SYSTEM_PROMPT = """你是一个健康助手。当用户询问以下内容时，**必须**使用对应工具：
+SYSTEM_PROMPT = """你是一个健康助手。严格按以下规则调用工具：
 
-1. 用户询问天气 → 使用 get_weather
-2. 用户询问饮食记录、饮食习惯、健康分析 → 使用 get_diet_records
-3. 用户询问数学计算 → 使用 calculate
-4. 用户询问个人信息（姓名、部门等）→ 使用 get_user_info
-5. 其他问题 → 直接回答，**不要**调用工具
+1. 饮食记录/饮食习惯/健康分析 → 只调用 get_diet_records
+2. 天气查询 → 只调用 get_weather
+3. 数学计算 → 只调用 calculate
+4. 个人信息查询 → 只调用 get_user_info
+5. 其他问题 → 直接回答，**禁止**调用任何工具
 
-注意：不要在不需要时调用工具，特别是分析饮食时不要查询天气。"""
+**重要**：饮食分析和天气无关，调用 get_diet_records 时不要再调用 get_weather"""
 
 
 class ChatChain:
